@@ -99,7 +99,7 @@ public class PanelsLogger {
             panels.addData("pose/heading_deg", headingDeg);
 
             // ---- robot velocity ----
-            // Three flavours, all useful for different questions:
+            // Three flavors, all useful for different questions:
             //   velocity()           world frame -- where on the field is it going
             //   twist()              body frame  -- forward / strafe from the robot's view
             //   tangentialVelocity() scalar      -- speed along the current path
