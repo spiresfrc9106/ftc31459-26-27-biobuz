@@ -1,3 +1,18 @@
+// Sloth's Load plugin. Adds the `deploySloth` and `removeSlothRemote` Gradle
+// tasks and wires `removeSlothRemote` into installDebug/installRelease so a
+// normal Studio install clears any staged hot-reload jar first.
+// Keep this version in lockstep with the Sloth runtime dependency below.
+buildscript {
+    repositories {
+        mavenCentral()
+        google()
+        maven { url = "https://repo.dairy.foundation/releases" }
+    }
+    dependencies {
+        classpath 'dev.frozenmilk:Load:0.3.2'
+    }
+}
+
 apply plugin: 'com.android.application'
 
 //
@@ -15,15 +30,46 @@ apply plugin: 'com.android.application'
 // Include common definitions from above.
 apply from: '../build.common.gradle'
 apply from: '../build.dependencies.gradle'
+// Must come AFTER build.common.gradle applies the Android application plugin.
+apply plugin: 'dev.frozenmilk.sinister.sloth.load'
 
 android {
     namespace = 'org.firstinspires.ftc.teamcode'
+
+    // Panels pulls Material Components, which must be compiled against API 34.
+    // build.common.gradle sets compileSdkVersion 30; override here rather than
+    // editing the shared file, so SDK updates merge cleanly.
+    compileSdk 34
 
     packagingOptions {
         jniLibs.useLegacyPackaging true
     }
 }
 
+repositories {
+    maven { url = "https://mymaven.bylazar.com/releases" }   // Panels
+    maven { url = "https://repo.dairy.foundation/releases" } // Sloth
+}
+
 dependencies {
     implementation project(':FtcRobotController')
+
+    // --- Sloth hot reload -------------------------------------------------
+    // Deploy with the `deploySloth` Gradle task (see PANELS.md). Only classes
+    // under org.firstinspires.ftc.teamcode are hot reloaded.
+    implementation 'dev.frozenmilk.sinister:Sloth:0.3.2'
+
+    // --- Panels dashboard -------------------------------------------------
+    // Sloth-repackaged build of Panels 1.0.13. The version string is
+    // <sloth version>+<panels version>; keep the 0.3.2 halves matching the
+    // Load plugin and Sloth runtime above.
+    // Reachable at http://192.168.43.1:8001 on robot Wi-Fi.
+    implementation 'com.bylazar.sloth:fullpanels:0.3.2+1.0.13'
+
+    // --- Ivy (Pedro's command scheduler) ----------------------------------
+    // BOTH artifacts are required: `core` provides Scheduler/Command/Groups,
+    // `pedro` provides PedroCommands.follow(). Missing `pedro` is the usual
+    // cause of "cannot resolve symbol follow".
+    implementation 'com.pedropathing.ivy:core:1.1.1'
+    implementation 'com.pedropathing.ivy:pedro:1.1.1'
 }
