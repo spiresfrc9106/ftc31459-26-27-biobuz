@@ -9,7 +9,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.ivy.Command;
 import com.pedropathing.ivy.Scheduler;
 import com.pedropathing.math.Pose;
-import com.pedropathing.math.PoseFactory;  // <-- VERIFY: see PANELS.md "Imports to check"
+import com.pedropathing.api.PoseFactory;
 import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
