@@ -9,25 +9,34 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 /**
  * Shared Panels logging for the Corbels OpModes.
  *
- * <p>Two kinds of output, and they are separate calls:
- * <ul>
- *   <li>{@code debug(String)} and {@code addData(k, v)} produce TEXT, shown in
- *       the Panels Telemetry panel.</li>
- *   <li>{@code graph(String, double)} produces a PLOTTED SERIES, shown in the
- *       Panels Graph panel. A value only appears in the graph picker after it
- *       has been sent at least once, so run the OpMode before looking for it.</li>
- * </ul>
+ * <p><b>How Panels 1.0 graphs.</b> There is no graph() method. The Graph panel
+ * parses telemetry text: any line containing {@code name: number} becomes a
+ * plottable series. {@code addData(k, v)} writes exactly that format, so every
+ * addData value appears in the Panels text panel AND the graph picker. Names
+ * may contain anything except a colon.
  *
- * <p>{@code update(telemetry)} flushes to Panels AND the Driver Station in one
- * call, so OpModes using this class should not call {@code telemetry.update()}
- * themselves.
+ * <p>A series appears in the picker only after it has been sent once, in the
+ * order it was first sent. The picker is a flat list; the {@code loop/},
+ * {@code pose/} and {@code vel/} prefixes are for readability only.
  *
- * <p>Series are named {@code group/name} so Panels groups them in the picker.
+ * <p><b>Sampling.</b> The robot sends to Panels every 75 ms by default and
+ * discards lines from the loops in between, so graphs are sampled, not
+ * per-loop. With a ~5 ms loop, roughly 1 loop in 15 reaches the graph.
+ * {@code loop/max_ms} exists to catch spikes that sampling misses.
+ * {@code panels.setUpdateInterval(ms)} lowers the interval at the cost of
+ * more Wi-Fi traffic.
+ *
+ * <p><b>Output split.</b> Panels gets every series; the Driver Station gets a
+ * three-line summary. ({@code TelemetryManager.update(telemetry)} would copy
+ * every Panels line to the DS, which crowds its screen.) {@link #update}
+ * flushes both, so OpModes using this class should not call
+ * {@code telemetry.update()} themselves.
  */
 public class PanelsLogger {
 
     /** Panels' telemetry handle. Panels itself is already running inside the
-     *  Robot Controller app; there is nothing to start. */
+     *  Robot Controller app; there is nothing to start. PanelsTelemetry is a
+     *  Kotlin object, hence INSTANCE from Java. */
     private final TelemetryManager panels = PanelsTelemetry.INSTANCE.getTelemetry();
 
     private long loops;
@@ -71,9 +80,11 @@ public class PanelsLogger {
         double hz = loopMs > 0.0 ? 1000.0 / loopMs : 0.0;
         double upSec = (now - startNs) / 1_000_000_000.0;
 
-        panels.graph("loop/count", (double) loops);
-        panels.graph("loop/ms", loopMs);
-        panels.graph("loop/hz", hz);
+        panels.addData("loop/count", loops);
+        panels.addData("loop/ms", loopMs);
+        panels.addData("loop/max_ms", maxLoopMs);
+        panels.addData("loop/hz", hz);
+        panels.addData("loop/uptime_s", upSec);
 
         if (follower != null) {
             // ---- robot position ----
@@ -83,14 +94,14 @@ public class PanelsLogger {
             double y = follower.pose().y();
             double headingDeg = Math.toDegrees(follower.pose().heading());
 
-            panels.graph("pose/x_in", x);
-            panels.graph("pose/y_in", y);
-            panels.graph("pose/heading_deg", headingDeg);
+            panels.addData("pose/x_in", x);
+            panels.addData("pose/y_in", y);
+            panels.addData("pose/heading_deg", headingDeg);
 
             // ---- robot velocity ----
             // Three flavours, all useful for different questions:
-            //   velocity()          world frame  -- where on the field is it going
-            //   twist()             body frame   -- forward / strafe from the robot's view
+            //   velocity()           world frame -- where on the field is it going
+            //   twist()              body frame  -- forward / strafe from the robot's view
             //   tangentialVelocity() scalar      -- speed along the current path
             // Velocity and Twist expose PUBLIC FIELDS vx/vy/omega, not getters.
             double vx = follower.velocity().vx;
@@ -101,37 +112,28 @@ public class PanelsLogger {
             double tangential = follower.tangentialVelocity();
             double speed = Math.hypot(vx, vy);
 
-            panels.graph("vel/vx_ips", vx);
-            panels.graph("vel/vy_ips", vy);
-            panels.graph("vel/speed_ips", speed);
-            panels.graph("vel/omega_radps", omega);
-            panels.graph("vel/forward_ips", forward);
-            panels.graph("vel/strafe_ips", strafe);
-            panels.graph("vel/tangential_ips", tangential);
-
-            panels.debug(String.format(
-                    "pose   x=%6.2f in   y=%6.2f in   h=%6.1f deg", x, y, headingDeg));
-            panels.debug(String.format(
-                    "vel    speed=%5.2f  fwd=%5.2f  strafe=%5.2f  tang=%5.2f in/s",
-                    speed, forward, strafe, tangential));
+            panels.addData("vel/vx_ips", vx);
+            panels.addData("vel/vy_ips", vy);
+            panels.addData("vel/speed_ips", speed);
+            panels.addData("vel/omega_radps", omega);
+            panels.addData("vel/forward_ips", forward);
+            panels.addData("vel/strafe_ips", strafe);
+            panels.addData("vel/tangential_ips", tangential);
 
             driverStation.addData("Pose", "x %.1f  y %.1f  h %.0f", x, y, headingDeg);
             driverStation.addData("Speed", "%.1f in/s", speed);
         }
 
-        panels.debug(String.format(
-                "loop   #%d   %.2f ms (max %.2f)   %.0f Hz   up %.1fs",
-                loops, loopMs, maxLoopMs, hz, upSec));
-
         if (!pedroLog.isEmpty()) {
+            // Text only -- unless FollowerLog.toString() contains "name: number"
+            // pairs, in which case those become extra graph series as well.
             panels.debug("pedro  " + pedroLog);
         }
 
-        driverStation.addData("Loop", "#%d  %.1f ms", loops, loopMs);
+        driverStation.addData("Loop", "#%d  %.1f ms (max %.1f)", loops, loopMs, maxLoopMs);
 
-        // One call reaches Panels and the Driver Station. Do not also call
-        // driverStation.update() -- this does it.
-        panels.update(driverStation);
+        panels.update();         // Panels: every series above (throttled to 75 ms)
+        driverStation.update();  // Driver Station: summary lines only
     }
 
     public long loops() {

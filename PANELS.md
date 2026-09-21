@@ -81,20 +81,26 @@ Join the robot's Wi-Fi, open `http://192.168.43.1:8001`.
 
 Run **TeleOp + Panels** or **Auto: Drive 24in** and you get:
 
-**Telemetry panel** — text lines:
+**Telemetry panel** — one line per value:
 ```
-pose   x=  6.42 in   y=  0.03 in   h=   0.2 deg
-vel    speed= 18.40  fwd= 18.39  strafe= 0.21  tang= 18.40 in/s
-loop   #412   4.83 ms (max 21.40)   207 Hz   up 2.1s
+loop/count: 412
+loop/ms: 4.83
+loop/max_ms: 21.4
+pose/x_in: 6.42
+vel/speed_ips: 18.4
+...
 ```
 
-**Graph panel** — pick series from the list. Available:
+**Graph panel** — every one of those lines is also a plottable series. Pick
+them from the list:
 
 | Series | Meaning |
 |---|---|
 | `loop/count` | Loop counter since start() |
 | `loop/ms` | Milliseconds for the last loop |
+| `loop/max_ms` | Slowest loop since start() — catches spikes sampling misses |
 | `loop/hz` | Loop rate |
+| `loop/uptime_s` | Seconds since start() |
 | `pose/x_in`, `pose/y_in` | Position, inches |
 | `pose/heading_deg` | Heading, degrees |
 | `vel/vx_ips`, `vel/vy_ips` | World-frame velocity |
@@ -104,12 +110,23 @@ loop   #412   4.83 ms (max 21.40)   207 Hz   up 2.1s
 | `vel/tangential_ips` | Speed along the current path |
 
 A series only shows up in the picker **after it has been sent once**, so start
-the OpMode before hunting for it.
+the OpMode before hunting for it. The picker is a flat list in the order
+series were first sent; the `loop/` `pose/` `vel/` prefixes are just for
+readability.
+
+**The Driver Station** shows only a three-line summary (Pose, Speed, Loop).
+The full set goes to Panels.
+
+**Graphs are sampled, not per-loop.** The robot sends to Panels every 75 ms
+by default and drops the loops in between. With a ~5 ms loop, about 1 loop
+in 15 reaches the graph.
 
 ### Reading the graphs
 
-- `loop/ms` should sit low and flat. Spikes mean something in the loop is
-  blocking — usually a slow sensor read or telemetry doing too much.
+- `loop/ms` should sit low and flat. Because of sampling, a single slow loop
+  usually won't show here — watch `loop/max_ms` instead. A step up in
+  `loop/max_ms` means some loop blocked: usually a slow sensor read or
+  telemetry doing too much.
 - `pose/x_in` during the auto should ramp smoothly to 24 and stop.
 - `vel/tangential_ips` should rise, plateau, then decay to zero. A long tail
   near zero means the follower is still correcting at the end of the path.
@@ -118,25 +135,34 @@ the OpMode before hunting for it.
 
 ## Adding your own logging
 
-In any OpMode that already has a `PanelsLogger`:
+Panels 1.0 has **no `graph()` method**. The Graph panel parses telemetry
+text: any line containing `name: number` becomes a series. `addData` writes
+exactly that format, so it is both the text call and the graph call.
+
+`PanelsTelemetry` is one shared instance, so any class — an OpMode or a
+subsystem — can add to it, as long as it happens before `log.update(...)`
+in the loop:
 
 ```java
-// text
-panels.debug("intake jammed");
-panels.addData("Arm target", target);
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
 
-// plotted
-panels.graph("arm/position", armMotor.getCurrentPosition());
-panels.graph("arm/target", target);
+TelemetryManager panels = PanelsTelemetry.INSTANCE.getTelemetry();
+
+panels.addData("arm/target", target);                        // text AND graph
+panels.addData("arm/position", armMotor.getCurrentPosition());
+panels.addLine("a:1.5 b:2.25");                              // two series, one line
+panels.debug("intake jammed");                               // text only
 ```
 
-Text and plots are separate calls — `debug()` does not plot, `graph()` does not
-appear in the text panel. `graph()` takes a `double`.
+Names can contain anything except a colon. A `debug()` or `addLine()` line
+becomes graphable too if it contains `name: number`.
 
-Name series `group/name` so they cluster in the picker.
+`log.update(follower, telemetry)` flushes Panels and the Driver Station once
+per loop. Do not call `telemetry.update()` or `panels.update()` yourself.
 
-Call `panels.update(telemetry)` once at the end of the loop. It pushes to
-Panels **and** the Driver Station, so do not also call `telemetry.update()`.
+To sample faster than every 75 ms, call `panels.setUpdateInterval(20);` in
+`start()`. It costs more Wi-Fi traffic.
 
 ## The autonomous
 
