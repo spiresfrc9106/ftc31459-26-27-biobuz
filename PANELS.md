@@ -107,7 +107,7 @@ them from the list:
 | `vel/speed_ips` | Overall speed |
 | `vel/omega_radps` | Angular velocity |
 | `vel/forward_ips`, `vel/strafe_ips` | Body-frame velocity |
-| `vel/tangential_ips` | Speed along the current path |
+| `vel/tangential_ips` | Speed along the current path. `NaN` when there is no path — i.e. always in teleop |
 
 A series only shows up in the picker **after it has been sent once**, so start
 the OpMode before hunting for it. The picker is a flat list in the order
@@ -132,6 +132,57 @@ in 15 reaches the graph.
   near zero means the follower is still correcting at the end of the path.
 - `vel/strafe_ips` should stay near zero on a straight drive. If it doesn't,
   the odometry pod offsets in `Constants.java` are probably off.
+
+### Field view
+
+Open the **Field** panel. Nothing to configure in the Panels UI — the code
+sends the Pedro coordinate preset with every frame. Four things are drawn:
+
+| Drawn as | What it is | When |
+|---|---|---|
+| Blue 18×18 square + line | The robot, where odometry says it is; the line shows which way it faces | Always |
+| Green square + line | The **aim point**: the nearest point on the path, at the heading the path wants there | Following a path, or holding a pose |
+| Orange line | The path segment being followed | Following a path |
+| Grey line | The trail — where the robot has been since the OpMode started | Once it has moved an inch |
+
+**The gap between the blue and green squares is the tracking error.** The
+green square is the *nearest* point on the path, not a time-based target, so
+it sits beside the robot, never ahead or behind — it shows how far off the line
+and how crooked the robot is, not whether it's running late.
+
+In teleop there's no path, so you only see the robot and its trail.
+
+This replaces Pedro 2's `Drawing.drawDebug(follower)`. That method lived in the
+Pedro 2 quickstart and does not exist in Pedro 3; code or advice that calls it
+is written for Pedro 2.
+
+**It will start in a corner.** Pedro puts `(0, 0)` in a field corner, with the
+field spanning 0–144 inches. Both OpModes start the robot at `(0, 0)`, so it
+draws in the corner with most of the square off the field. That's expected.
+
+To start the autonomous mid-field, change these in `DriveForward24`:
+
+```java
+private final Pose startPose = poses.of(72, 72, 0);
+private final Pose endPose   = poses.of(72 + DISTANCE_IN, 72, 0);
+```
+
+and the "Remaining" line to:
+
+```java
+telemetry.addData("Remaining", "%.1f in", endPose.x() - follower.pose().x());
+```
+
+The robot still physically drives 24 inches — only the reported numbers
+change. `pose/x_in` will then graph 72 → 96 instead of 0 → 24.
+
+For the teleop, add this in `init()` after `Constants.create`:
+
+```java
+follower.setPose(PoseFactory.degrees().of(72, 72, 0));
+```
+
+with `import com.pedropathing.api.PoseFactory;`.
 
 ## Adding your own logging
 
@@ -193,22 +244,8 @@ Two things that will bite you if changed:
   `.linear()` interpolating heading backwards on line paths in 3.0.x. This path
   holds heading, so constant is correct anyway.
 
-## Imports to check
 
-One import could not be verified against published docs:
-
-```java
-import com.pedropathing.math.PoseFactory;
-```
-
-`PoseFactory.degrees()` and `.of(x, y, headingDeg)` are correct — they come
-straight from Pedro's autonomous guide — but the package is a best guess, based
-on `Pose` living in `com.pedropathing.math`. If it won't resolve, delete the
-import line and let Android Studio auto-import it (Alt+Enter on the red
-`PoseFactory`). Everything else here is taken from Pedro 3 docs or verified
-working projects.
-
-## Versions
+# Versions
 
 | Component | Version |
 |---|---|

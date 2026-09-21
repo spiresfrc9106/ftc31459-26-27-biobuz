@@ -1,3 +1,18 @@
+## FTC 31459 - Corbels Gold - 2026-27 Season - BIOBUZZ
+
+Welcome! This repository contains the source code for FTC Team 31459, Corbels Gold, for
+the 2026-27 BIOBUZZ season.
+
+### TODO 
+- [ ] Monitor the sloth plugin for updates to Gradle version [see](PANELS.md#one-time-setup) - 1. Gradle version
+
+### See also
+
+- [FTCRobotController](https://github.com/FIRST-Tech-Challenge/FTCRobotController)
+- [pedropathing 3](https://pedropathing.com/)
+- [ivy](https://pedropathing.com/docs/ivy)
+- [panels](./PANELS.md)
+
 ## NOTICE
 
 This repository contains the public FTC SDK for the BIOBUZZ (2026-2027) competition season.
