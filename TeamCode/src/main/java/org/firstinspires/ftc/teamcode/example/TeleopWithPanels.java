@@ -1,9 +1,12 @@
-package org.firstinspires.ftc.teamcode.panels;
+package org.firstinspires.ftc.teamcode.example;
 
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.panels.PanelsLogger;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 /**
@@ -29,7 +32,6 @@ public class TeleopWithPanels extends OpMode {
                 .withLogger(followerLog -> log.pedro(followerLog.toString()));
         follower.update();
 
-        telemetry.addLine("Panels: http://192.168.43.1:8001");
         telemetry.update();
     }
 
@@ -42,9 +44,9 @@ public class TeleopWithPanels extends OpMode {
     public void loop() {
         // Field-relative manual drive, unchanged from ExampleTeleop.
         follower.manual(
-                -gamepad1.left_stick_y,
-                gamepad1.left_stick_x,
-                gamepad1.right_stick_x
+                -gamepad1.left_stick_y*gamepad1.left_stick_y*gamepad1.left_stick_y,
+                -gamepad1.left_stick_x*gamepad1.left_stick_x*gamepad1.left_stick_x,
+                -gamepad1.right_stick_x*gamepad1.right_stick_x*gamepad1.right_stick_x
         );
 
         follower.update();

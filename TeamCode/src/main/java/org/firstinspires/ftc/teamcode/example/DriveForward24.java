@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.panels;
+package org.firstinspires.ftc.teamcode.example;
 
 import static com.pedropathing.api.Paths.line;
 import static com.pedropathing.ivy.Scheduler.schedule;
@@ -14,6 +14,7 @@ import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import org.firstinspires.ftc.teamcode.panels.PanelsLogger;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 /**
@@ -66,8 +67,6 @@ public class DriveForward24 extends OpMode {
         follower.setPose(startPose);
         follower.update();
 
-        telemetry.addLine("Panels: http://192.168.43.1:8001");
-        telemetry.addData("Will drive", "%.0f in forward", DISTANCE_IN);
         telemetry.update();
     }
 
