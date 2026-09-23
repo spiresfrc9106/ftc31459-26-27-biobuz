@@ -44,6 +44,10 @@ android {
     packagingOptions {
         jniLibs.useLegacyPackaging true
     }
+    testOptions {
+        // Android classes are empty stubs in JVM tests and throw unless this is set
+        unitTests.returnDefaultValues = true
+    }
 }
 
 repositories {
@@ -72,4 +76,6 @@ dependencies {
     // cause of "cannot resolve symbol follow".
     implementation 'com.pedropathing.ivy:core:1.1.1'
     implementation 'com.pedropathing.ivy:pedro:1.1.1'
+
+    testImplementation 'junit:junit:4.13.2'
 }
