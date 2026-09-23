@@ -1,5 +1,9 @@
 package org.firstinspires.ftc.teamcode.lessons;
 
+import static com.pedropathing.api.Paths.line;
+import static com.pedropathing.ivy.groups.Groups.sequential;
+import static com.pedropathing.ivy.pedro.PedroCommands.follow;
+
 import com.pedropathing.api.PoseFactory;
 import com.pedropathing.ivy.Command;
 import com.pedropathing.math.Pose;
@@ -7,11 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.base.CorbelsAuto;
 
-/**
- * L9: the first autonomous -- drive 24 inches forward and stop.
- *
- * <p>Passes when: LessonsTest.l9_autoDrives24InchesForwardAndStops
- */
+/** L9: the first autonomous -- drive 24 inches forward, and stop there. */
 @Autonomous(name = "L9 Drive 24", group = "Lessons")
 public class L9Drive24 extends CorbelsAuto {
 
@@ -27,10 +27,8 @@ public class L9Drive24 extends CorbelsAuto {
 
     @Override
     protected Command routine() {
-        // TODO: return a sequence with one step: follow a straight line from
-        //       start to end, holding heading 0.
-        //           return sequential(follow(follower, line(start, end).constant(0)));
-        //       Use .constant(), not .linear() -- Pedro 3.0.1 issues #176 and #181.
-        return Command.NOOP;
+        return sequential(
+                follow(follower, line(start, end).constant(0))
+        );
     }
 }

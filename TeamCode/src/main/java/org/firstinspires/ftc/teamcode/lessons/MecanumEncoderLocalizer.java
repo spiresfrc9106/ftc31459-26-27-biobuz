@@ -3,7 +3,10 @@ package org.firstinspires.ftc.teamcode.lessons;
 import com.pedropathing.localization.Localizer;
 import com.pedropathing.localization.MotionState;
 import com.pedropathing.math.Pose;
+import com.pedropathing.math.Twist;
+import com.pedropathing.api.PoseFactory;
 
+import org.firstinspires.ftc.teamcode.base.HeadingHold;
 import org.firstinspires.ftc.teamcode.base.odometry.WheelSource;
 
 import java.util.function.LongSupplier;
@@ -11,25 +14,31 @@ import java.util.function.LongSupplier;
 /**
  * L8: work out where the robot is from the drive wheels and the IMU.
  *
- * <p>Pedro 3 ships localizers for Pinpoint and dead wheels, but not for drive
- * encoders -- so this one is yours to write. Every loop: ask how far each
- * wheel rolled since last time, turn that into "forward" and "left" for the
- * robot, rotate it by the heading, and add it to where you thought you were.
- *
- * <p>Wheel order is {frontLeft, frontRight, backLeft, backRight}, in inches.
- *
- * <p>Passes when: MecanumEncoderLocalizerTest (all of it)
+ * <p>Pedro 3 has no localizer like this -- Pinpoint and dead wheels only -- so
+ * this is ours. Every loop it asks how far each wheel rolled, turns that into
+ * "forward" and "left" for the robot, rotates it by the heading, and adds it to
+ * where it thought it was. That is dead reckoning: no wheel ever admits to
+ * slipping, so the error only grows.
  */
 public class MecanumEncoderLocalizer implements Localizer {
 
+    private static final PoseFactory POSES = PoseFactory.radians();
+
     private final WheelSource source;
     private final LongSupplier clockNanos;
+
+    private double x;
+    private double y;
+    private double headingOffset;
+    private double[] lastWheels;
+    private double lastRawHeading;
+    private long lastNanos;
+    private MotionState state = MotionState.zero();
 
     public MecanumEncoderLocalizer(WheelSource source) {
         this(source, System::nanoTime);
     }
 
-    /** The second form lets the tests control time instead of the clock. */
     public MecanumEncoderLocalizer(WheelSource source, LongSupplier clockNanos) {
         this.source = source;
         this.clockNanos = clockNanos;
@@ -37,33 +46,69 @@ public class MecanumEncoderLocalizer implements Localizer {
 
     @Override
     public void update() {
-        // TODO 1: read source.wheelInches() and source.headingRadians().
-        // TODO 2: on the first loop there is nothing to compare against --
-        //         remember the values and return.
-        // TODO 3: work out how far each wheel moved since last time, then
-        //           forward = (fl + fr + bl + br) / 4
-        //           left    = (-fl + fr + bl - br) / 4
-        //         (Check that second one against a robot: to strafe LEFT, the
-        //         front-left wheel rolls backwards.)
-        // TODO 4: rotate (forward, left) by the heading and add it to x and y:
-        //           x += forward * cos(h) - left * sin(h)
-        //           y += forward * sin(h) + left * cos(h)
-        // TODO 5: publish the new pose with MotionState.ofTwist(...).
+        double[] wheels = source.wheelInches();
+        double rawHeading = source.headingRadians();
+        long now = clockNanos.getAsLong();
+
+        if (lastWheels == null) {                       // first loop: nothing to compare with
+            lastWheels = wheels.clone();
+            lastRawHeading = rawHeading;
+            lastNanos = now;
+            publish(0, 0, 0);
+            return;
+        }
+
+        double dFrontLeft = wheels[0] - lastWheels[0];
+        double dFrontRight = wheels[1] - lastWheels[1];
+        double dBackLeft = wheels[2] - lastWheels[2];
+        double dBackRight = wheels[3] - lastWheels[3];
+
+        double forward = (dFrontLeft + dFrontRight + dBackLeft + dBackRight) / 4;
+        double left = (-dFrontLeft + dFrontRight + dBackLeft - dBackRight) / 4;
+
+        double dHeading = HeadingHold.wrap(rawHeading - lastRawHeading);
+        double midHeading = lastRawHeading + headingOffset + dHeading / 2;   // halfway through the step
+
+        x += forward * Math.cos(midHeading) - left * Math.sin(midHeading);
+        y += forward * Math.sin(midHeading) + left * Math.cos(midHeading);
+
+        double seconds = (now - lastNanos) / 1e9;
+        lastWheels = wheels.clone();
+        lastRawHeading = rawHeading;
+        lastNanos = now;
+
+        if (seconds > 0) {
+            publish(forward / seconds, left / seconds, dHeading / seconds);
+        } else {
+            publish(0, 0, 0);
+        }
+    }
+
+    private void publish(double forwardPerSecond, double leftPerSecond, double turnPerSecond) {
+        state = MotionState.ofTwist(
+                POSES.of(x, y, lastRawHeading + headingOffset),
+                new Twist(forwardPerSecond, leftPerSecond, turnPerSecond));
     }
 
     @Override
     public void setPose(Pose pose) {
-        // TODO 6: start counting from this pose. The IMU's heading can't be
-        //         moved, so remember the DIFFERENCE and add it from now on.
+        x = pose.x();
+        y = pose.y();
+        headingOffset = pose.heading() - lastRawHeading;
+        publish(0, 0, 0);
     }
 
     @Override
     public MotionState state() {
-        return MotionState.zero();   // TODO 5: return the pose you worked out
+        return state;
     }
 
     @Override
     public void reset() {
-        // TODO 7: back to zero.
+        x = 0;
+        y = 0;
+        headingOffset = -lastRawHeading;
+        lastWheels = null;
+        publish(0, 0, 0);
     }
 }
