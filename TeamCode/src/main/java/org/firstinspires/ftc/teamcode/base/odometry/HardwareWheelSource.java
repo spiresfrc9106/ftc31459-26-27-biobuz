@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.base.odometry;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.teamcode.pedro.Constants;
+
 /**
  * Reads the four drive motors' encoders and the Control Hub's IMU.
  *
@@ -28,7 +30,10 @@ public class HardwareWheelSource implements WheelSource {
     }
 
     public HardwareWheelSource(HardwareMap map) {
-        this(map, "frontLeft", "frontRight", "backLeft", "backRight", new ImuHeading(map));
+        this(map, Constants.motorNames[0],
+                Constants.motorNames[1],
+                Constants.motorNames[2],
+                Constants.motorNames[3], new ImuHeading(map));
     }
 
     public HardwareWheelSource(HardwareMap map, String fl, String fr, String bl, String br,

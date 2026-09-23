@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -69,7 +70,7 @@ public final class OpModeHarness {
 
     public OpModeHarness(OpMode opMode) {
         this.opMode = opMode;
-        for (String name : new String[]{"frontLeft", "frontRight", "backLeft", "backRight"}) {
+        for (String name : Constants.motorNames) {
             motors.put(name, new FakeMotor());
         }
         hardwareMap.devices = (type, name) -> type == IMU.class ? imu : motors.get(name);
@@ -82,10 +83,10 @@ public final class OpModeHarness {
 
     /** Sets all four encoders, in ticks. */
     public void setWheelTicks(int frontLeft, int frontRight, int backLeft, int backRight) {
-        motors.get("frontLeft").ticks = frontLeft;
-        motors.get("frontRight").ticks = frontRight;
-        motors.get("backLeft").ticks = backLeft;
-        motors.get("backRight").ticks = backRight;
+        motors.get(Constants.motorNames[0]).ticks = frontLeft;
+        motors.get(Constants.motorNames[1]).ticks = frontRight;
+        motors.get(Constants.motorNames[2]).ticks = backLeft;
+        motors.get(Constants.motorNames[3]).ticks = backRight;
     }
 
     /** The OpMode under test, for reading what it logged. */

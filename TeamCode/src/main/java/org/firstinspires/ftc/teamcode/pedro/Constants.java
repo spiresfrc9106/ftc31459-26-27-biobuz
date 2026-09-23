@@ -25,11 +25,13 @@ import org.firstinspires.ftc.teamcode.pedro.procedures.Tests;
 
 
 public class Constants {
+    public static String[] motorNames = new String[] {"Front Left", "Front Right", "Back Left", "Back Right"};
+
     public static MecanumConfig drivetrainConfig = new MecanumConfig(c -> {
-        c.frontLeftName.set("Front Left");
-        c.frontRightName.set("Front Right");
-        c.backLeftName.set("Back Left");
-        c.backRightName.set("Back Right");
+        c.frontLeftName.set(motorNames[0]);
+        c.frontRightName.set(motorNames[1]);
+        c.backLeftName.set(motorNames[2]);
+        c.backRightName.set(motorNames[3]);
         c.frontLeftDirection.set(DcMotorSimple.Direction.FORWARD);
         c.frontRightDirection.set(DcMotorSimple.Direction.REVERSE);
         c.backLeftDirection.set(DcMotorSimple.Direction.FORWARD);
