@@ -7,6 +7,10 @@ import com.pedropathing.ivy.Scheduler;
 import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import io.github.mikestitt.corbelsflightlog.FlightLog;
+import io.github.mikestitt.corbelsflightlog.ftc.FtcFlightLog;
+import io.github.mikestitt.corbelsflightlog.pedro.PedroFlightLog;
+
 import org.firstinspires.ftc.teamcode.panels.PanelsLogger;
 
 import java.util.LinkedHashMap;
@@ -22,6 +26,13 @@ import java.util.Map;
  * {@link CorbelsTeleOp} and {@link CorbelsAuto} fill them in; a lesson extends
  * one of those, not this.
  *
+ * <p>Every run also writes a WPILOG file, openable in AdvantageScope
+ * afterwards: everything sent to {@link #data}, the robot's pose and path from
+ * Pedro, and the shadow localizers. It opens at init, so setting-up values are
+ * in it as well as the run. Panels shows the run live; the file keeps
+ * it. Files land in {@code /sdcard/corbelsflightlog} and can be downloaded from
+ * {@code http://192.168.43.1:8080/corbelsflightlog}.
+ *
  * <p>The lifecycle methods are final on purpose. Everything a lesson needs to
  * change has a hook, and an OpMode that forgets to call {@code super.init()} is
  * a bad afternoon.
@@ -33,6 +44,15 @@ public abstract class CorbelsOpMode extends OpMode {
 
     protected Follower follower;
     protected PanelsLogger log;
+
+    /**
+     * The run's WPILOG file, for opening in AdvantageScope afterwards. Panels
+     * shows what is happening now; this keeps what happened. Everything sent to
+     * {@link #data} goes to both.
+     */
+    protected FlightLog flight;
+
+    private PedroFlightLog pedro;
     protected Shadow shadow;
 
     /** Panels' telemetry, if a lesson wants it directly. */
@@ -70,23 +90,29 @@ public abstract class CorbelsOpMode extends OpMode {
      * plotted on a graph.
      */
     protected void data(String key, double value) {
-        panels.addData(key, value);
+        if (panels != null) panels.addData(key, value);   // null until start
         values.put(key, value);
+        if (flight != null) flight.recordOutput(key, value);
     }
 
     protected void data(String key, boolean value) {
-        panels.addData(key, value);
+        if (panels != null) panels.addData(key, value);   // null until start
         values.put(key, value);
+        if (flight != null) flight.recordOutput(key, value);
     }
 
     protected void data(String key, String value) {
-        panels.addData(key, value);
+        if (panels != null) panels.addData(key, value);   // null until start
         values.put(key, value);
+        if (flight != null) flight.recordOutput(key, value);
     }
 
     /** A pose, as three graphable numbers: key/x_in, key/y_in, key/heading_deg. */
     protected void data(String key, Pose pose) {
         if (pose == null) return;
+        // As a struct too, so AdvantageScope can draw it on the field rather
+        // than only graph the three numbers.
+        if (flight != null) PedroFlightLog.recordOutput(flight, key, pose);
         data(key + "/x_in", pose.x());
         data(key + "/y_in", pose.y());
         data(key + "/heading_deg", Math.toDegrees(pose.heading()));
@@ -113,6 +139,11 @@ public abstract class CorbelsOpMode extends OpMode {
         // doesn't match the configuration fails here, where it can be read --
         // not halfway through a match.
         hardware = RobotFactory.hardware.apply(hardwareMap);
+        // From init, so anything logged while setting up -- a starting pose, a
+        // sensor reading, a configuration problem -- is in the file too. The
+        // Robot Controller closes it if the OpMode never runs.
+        flight = FtcFlightLog.open(this);
+        pedro = new PedroFlightLog(flight, "Robot");
         follower = RobotFactory.follower.apply(hardwareMap);
         onInit();
         follower.update();
@@ -142,6 +173,8 @@ public abstract class CorbelsOpMode extends OpMode {
         Scheduler.execute();
         shadow.update(this::data);
         afterLoop();
+        if (pedro != null) pedro.record(follower);
+        if (flight != null) flight.endLoop();
         // PanelsLogger does the rest: loop timing, pose, mode, velocity, the
         // field drawing, and one update() that flushes Panels and the
         // Driver Station together.
@@ -152,5 +185,6 @@ public abstract class CorbelsOpMode extends OpMode {
     public final void stop() {
         follower.manual(0, 0, 0);
         follower.update();
+        if (flight != null) flight.close();
     }
 }

@@ -5,6 +5,8 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.IMU;
 
+import io.github.mikestitt.corbelsflightlog.ftc.FtcFlightLog;
+
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
@@ -12,6 +14,9 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -100,6 +105,15 @@ public final class OpModeHarness {
     /** How many times anything has resolved the robot's hardware. */
     public int lookups;
 
+    /** Where this harness's flight logs go. */
+    public File logFolder;
+
+    /** The .wpilog files written so far. */
+    public File[] logs() {
+        File[] files = logFolder.listFiles((d, n) -> n.endsWith(".wpilog"));
+        return files == null ? new File[0] : files;
+    }
+
     private final OpMode opMode;
 
     public OpModeHarness(OpMode opMode) {
@@ -124,6 +138,15 @@ public final class OpModeHarness {
         opMode.gamepad1 = gamepad1;
         opMode.gamepad2 = gamepad2;
         RobotFactory.follower = map -> robot.follower;
+        // Flight logs go to a temp folder, not the robot's storage or the
+        // working directory. Each harness gets its own.
+        try {
+            logFolder = Files.createTempDirectory("corbelsflightlog-test").toFile();
+            logFolder.deleteOnExit();
+            FtcFlightLog.useDirectory(logFolder);
+        } catch (IOException e) {
+            throw new IllegalStateException("could not make a temp log folder", e);
+        }
     }
 
     /** Sets all four encoders, in ticks. */
