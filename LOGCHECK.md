@@ -179,6 +179,34 @@ frame.
 
 ---
 
+## 10. Is the storage write visible at all? (Log 8)
+
+Only worth running if you want the loop-cost question closed properly.
+
+The first loop-cost run showed a strong impulse train at **3.94 Hz** -- one brief
+cost every 254 ms, with harmonics out to 35 Hz -- while the logger's own
+once-a-second flush measured **9.7 microseconds** against a 4 microsecond noise
+floor. 254 ms is almost certainly the Driver Station telemetry transmission, not
+us.
+
+**Log 8: 3 Hz flush beat** writes 192 KB/s so the 64 KB buffer fills exactly
+three times a second, moves the Driver Station transmission to 200 ms (putting
+the SDK's comb at 5, 10, 15 Hz, clear of ours), and skips `endLoop()` so its
+one-second flush cannot smear the beat.
+
+- [ ] Run it for 20 to 30 seconds. **It writes about 4 MB in 20 seconds** --
+      keep it short and delete the files afterwards.
+- [ ] Download the log and run an FFT of `/loop/ms` against time.
+
+**A line at 3 Hz with harmonics at 6, 9, 12** means storage writes do show up in
+loop time, and their size tells you what one costs. **No line at 3 Hz** means
+they are below the noise even at sixty times the normal rate -- in which case
+nothing about how writes are batched could affect loop time, and Phase C is
+closed.
+
+Either way, expect the 5 Hz comb from the Driver Station to be the largest thing
+in the spectrum.
+
 ## What to bring back
 
 1. Step 1: present or absent, and the folder it named.
