@@ -25,15 +25,27 @@ import org.firstinspires.ftc.teamcode.pedro.procedures.Tests;
 
 
 public class Constants {
+
+    // ---- Device names. These must match the Robot Controller configuration,
+    // ---- and nothing outside this file should name a device. ----------------
+
+    public static String frontLeftName = "Front Left";
+    public static String frontRightName = "Front Right";
+    public static String backLeftName = "Back Left";
+    public static String backRightName = "Back Right";
+    public static String imuName = "imu";
+
     public static MecanumConfig drivetrainConfig = new MecanumConfig(c -> {
-        c.frontLeftName.set("Front Left");
-        c.frontRightName.set("Front Right");
-        c.backLeftName.set("Back Left");
-        c.backRightName.set("Back Right");
+        c.frontLeftName.set(frontLeftName);
+        c.frontRightName.set(frontRightName);
+        c.backLeftName.set(backLeftName);
+        c.backRightName.set(backRightName);
         c.frontLeftDirection.set(DcMotorSimple.Direction.FORWARD);
         c.frontRightDirection.set(DcMotorSimple.Direction.REVERSE);
         c.backLeftDirection.set(DcMotorSimple.Direction.FORWARD);
         c.backRightDirection.set(DcMotorSimple.Direction.REVERSE);
+
+        c.manualBrakeMode.set(true);
     });
 
     public static PinpointConfig localizerConfig = new PinpointConfig(c -> {
@@ -70,6 +82,12 @@ public class Constants {
                 c.maxAchievableStrafeVelocity.set(43.595132915165195);
                 c.naturalForwardDeceleration.set(46.50217822427653);
                 c.naturalStrafeDeceleration.set(62.02176070971554);
+
+                c.translationalConstraint.set(0.5);              // hold tolerance in inches
+                c.headingConstraint.set(Math.toRadians(1));      // hold tolerance degrees
+                c.velocityConstraint.set(0.1);                   // hold tolerance inches/sec
+                c.holdPointTranslationalScaling.set(0.45);       // default=0.45
+                c.holdPointHeadingScaling.set(0.35);             // default=0.35
             }
     );
 

@@ -42,6 +42,21 @@ public final class HeadingHold {
         return controller.calculate(target, wrap(target - heading));
     }
 
+    /**
+     * Points at a heading the driver asked for, rather than the one they left.
+     * The turn stick still wins: nudging it takes control back, as always.
+     */
+    public void aimAt(double radians) {
+        target = radians;
+        controller.reset();
+    }
+
+    /** True once the held heading is within {@code tolerance} radians. */
+    public boolean atTarget(Follower follower, double tolerance) {
+        return target != null
+                && Math.abs(wrap(target - follower.pose().heading())) <= tolerance;
+    }
+
     /** Forgets the target, e.g. when switching drive modes. */
     public void release() {
         target = null;

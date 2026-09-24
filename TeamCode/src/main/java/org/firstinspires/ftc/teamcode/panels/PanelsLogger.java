@@ -217,11 +217,12 @@ public class PanelsLogger {
         // items), but setting it each frame is cheap and self-contained.
         field.setOffsets(FieldPresets.INSTANCE.getPEDRO_PATHING());
 
-        // 1. Path. currentPath() is null unless following. Must check it:
-        //    with no path, poseAt() quietly returns the robot's own pose, which
-        //    would draw a fake one-point path. poseAt() samples the CURRENT
-        //    SEGMENT only, so a multi-segment path shows the active piece.
-        if (follower.currentPath() != null) {
+        // 1. Path. poseAt() samples the CURRENT SEGMENT, so check that rather
+        //    than currentPath(): on the last update of a path the segment queue
+        //    empties one loop before the path clears, and poseAt() then throws
+        //    on a null segment. With no path at all it quietly returns the
+        //    robot's own pose, which would draw a fake one-point path.
+        if (follower.currentSegment() != null) {
             field.setStyle(PanelsField.INSTANCE.getTRANSPARENT(), PATH_COLOR, 0.5);
             double px = follower.poseAt(0.0).x();
             double py = follower.poseAt(0.0).y();

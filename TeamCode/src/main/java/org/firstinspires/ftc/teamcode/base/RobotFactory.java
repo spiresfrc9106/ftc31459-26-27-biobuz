@@ -18,6 +18,13 @@ public final class RobotFactory {
     /** Builds the follower. Tests swap in a simulated drivetrain. */
     public static Function<HardwareMap, Follower> follower = Constants::create;
 
+    /**
+     * Finds every device, by the names in {@link Constants}. Tests swap in
+     * fakes, which is also why nothing constructs a HardwareMap in a test:
+     * the real one needs an Android context.
+     */
+    public static Function<HardwareMap, RobotHardware> hardware = RobotHardware::new;
+
     private RobotFactory() {
     }
 }
