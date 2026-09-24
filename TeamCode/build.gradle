@@ -79,14 +79,18 @@ dependencies {
 
 
     // --- corbelsflightlog (WPILOG files for AdvantageScope) ---------------
-    // Until it is on JitPack for the -ftc module, build it from the
-    // corbelsflightlog repo with
-    //     ./gradlew publishToMavenLocal
-    // which puts these in ~/.m2; mavenLocal() in build.dependencies.gradle
-    // finds them.
-    implementation 'io.github.mikestitt:corbelsflightlog-core:0.2.0-SNAPSHOT'
-    implementation 'io.github.mikestitt:corbelsflightlog-ftc:0.2.0-SNAPSHOT'
-    implementation 'io.github.mikestitt:corbelsflightlog-pedro:0.2.0-SNAPSHOT'
+    // From JitPack, which needs no setup: it builds the tag the first time
+    // anyone asks. Note the coordinates are JitPack's, not the library's own:
+    // the group is com.github.<owner>.<repo> and the version is the git tag,
+    // with its leading v. All four modules publish there as of v0.2.1.
+    //
+    // To use a locally built copy instead, run ./gradlew publishToMavenLocal in
+    // the corbelsflightlog repo and depend on
+    // 'io.github.mikestitt:corbelsflightlog-core:<version>' -- its own
+    // coordinates, found through mavenLocal().
+    implementation 'com.github.MikeStitt.corbelsflightlog:corbelsflightlog-core:v0.2.1'
+    implementation 'com.github.MikeStitt.corbelsflightlog:corbelsflightlog-ftc:v0.2.1'
+    implementation 'com.github.MikeStitt.corbelsflightlog:corbelsflightlog-pedro:v0.2.1'
 
     testImplementation 'junit:junit:4.13.2'
 }
