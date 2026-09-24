@@ -77,5 +77,16 @@ dependencies {
     implementation 'com.pedropathing.ivy:core:1.1.1'
     implementation 'com.pedropathing.ivy:pedro:1.1.1'
 
+
+    // --- corbelsflightlog (WPILOG files for AdvantageScope) ---------------
+    // Until it is on JitPack for the -ftc module, build it from the
+    // corbelsflightlog repo with
+    //     ./gradlew publishToMavenLocal
+    // which puts these in ~/.m2; mavenLocal() in build.dependencies.gradle
+    // finds them.
+    implementation 'io.github.mikestitt:corbelsflightlog-core:0.2.0-SNAPSHOT'
+    implementation 'io.github.mikestitt:corbelsflightlog-ftc:0.2.0-SNAPSHOT'
+    implementation 'io.github.mikestitt:corbelsflightlog-pedro:0.2.0-SNAPSHOT'
+
     testImplementation 'junit:junit:4.13.2'
 }

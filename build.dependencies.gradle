@@ -1,4 +1,5 @@
 repositories {
+    mavenLocal()   // corbelsflightlog, until the -ftc module is published
     mavenCentral()
     google() // Needed for androidx
     maven { url 'https://repo.dairy.foundation/releases/'} // needed for pedropathing

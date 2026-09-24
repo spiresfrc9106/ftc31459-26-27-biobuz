@@ -22,7 +22,7 @@ public class L8CompareLocalizers extends CorbelsTeleOp {
     protected void shadows() {
         // TODO 1: run your localizer alongside the real one, named "encoders":
         //         shadow.add("encoders",
-        //                 new MecanumEncoderLocalizer(new HardwareWheelSource(hardwareMap)));
+        //                 new MecanumEncoderLocalizer(new HardwareWheelSource(hardware)));
     }
 
     @Override
