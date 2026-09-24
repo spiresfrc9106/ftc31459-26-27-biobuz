@@ -3,12 +3,15 @@ package org.firstinspires.ftc.teamcode.base;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,43 +22,73 @@ import java.util.Map;
  */
 public final class OpModeHarness {
 
-    /** A motor whose encoder the test drives by hand. */
-    public static final class FakeMotor implements DcMotorEx {
+    /**
+     * A motor whose encoder the test drives by hand.
+     *
+     * <p>Built as a {@link Proxy} rather than a class implementing DcMotorEx:
+     * the real interface has dozens of methods and gains more with each SDK
+     * release, and a hand-written fake would stop compiling every time. The
+     * proxy answers the four calls this code makes and returns harmless
+     * defaults for the rest.
+     */
+    public static final class FakeMotor implements InvocationHandler {
         public int ticks;
         public double power;
 
-        @Override
-        public int getCurrentPosition() {
-            return ticks;
-        }
+        /** The motor to hand to code that wants a DcMotorEx. */
+        public final DcMotorEx device = (DcMotorEx) Proxy.newProxyInstance(
+                DcMotorEx.class.getClassLoader(), new Class<?>[]{DcMotorEx.class}, this);
 
         @Override
-        public void setPower(double power) {
-            this.power = power;
-        }
-
-        @Override
-        public double getVelocity() {
-            return 0;
-        }
-
-        @Override
-        public void setVelocity(double ticksPerSecond) {
+        public Object invoke(Object proxy, Method method, Object[] args) {
+            switch (method.getName()) {
+                case "getCurrentPosition":
+                    return ticks;
+                case "setPower":
+                    power = (Double) args[0];
+                    return null;
+                case "getPower":
+                    return power;
+                default:
+                    return defaultValue(method.getReturnType());
+            }
         }
     }
 
-    public static final class FakeImu implements IMU {
+    /** An IMU whose heading the test sets. */
+    public static final class FakeImu implements InvocationHandler {
         public double yawRadians;
 
-        @Override
-        public YawPitchRollAngles getRobotYawPitchRollAngles() {
-            return new YawPitchRollAngles(yawRadians);
-        }
+        public final IMU device = (IMU) Proxy.newProxyInstance(
+                IMU.class.getClassLoader(), new Class<?>[]{IMU.class}, this);
 
         @Override
-        public void resetYaw() {
-            yawRadians = 0;
+        public Object invoke(Object proxy, Method method, Object[] args) {
+            switch (method.getName()) {
+                case "getRobotYawPitchRollAngles":
+                    return new YawPitchRollAngles(AngleUnit.RADIANS, yawRadians, 0, 0, 0);
+                case "resetYaw":
+                    yawRadians = 0;
+                    return null;
+                default:
+                    return defaultValue(method.getReturnType());
+            }
         }
+    }
+
+    /** What an unstubbed call returns: zero, false, or null. */
+    static Object defaultValue(Class<?> type) {
+        if (!type.isPrimitive()) return null;
+        if (type == boolean.class) return false;
+        if (type == void.class) return null;
+        if (type == int.class) return 0;
+        if (type == long.class) return 0L;
+        if (type == double.class) return 0.0;
+        if (type == float.class) return 0f;
+        if (type == short.class) return (short) 0;
+        if (type == byte.class) return (byte) 0;
+        if (type == char.class) return (char) 0;
+        return null;
     }
 
     public final SimRobot robot = new SimRobot();
@@ -64,9 +97,7 @@ public final class OpModeHarness {
     public final Map<String, String> driverStation = SimRobot.newCapture();
     public final Map<String, FakeMotor> motors = new HashMap<>();
     public final FakeImu imu = new FakeImu();
-    public final HardwareMap hardwareMap = new HardwareMap();
-
-    /** How many times anything has asked the HardwareMap for a device. */
+    /** How many times anything has resolved the robot's hardware. */
     public int lookups;
 
     private final OpMode opMode;
@@ -77,11 +108,18 @@ public final class OpModeHarness {
                 Constants.backLeftName, Constants.backRightName}) {
             motors.put(name, new FakeMotor());
         }
-        hardwareMap.devices = (type, name) -> {
+        // No HardwareMap is built here: the real one needs an Android context.
+        // The OpMode gets its devices through RobotFactory instead, which is
+        // also how the follower is swapped for a simulated one.
+        RobotFactory.hardware = map -> {
             lookups++;
-            return type == IMU.class ? imu : motors.get(name);
+            return new RobotHardware(
+                    motors.get(Constants.frontLeftName).device,
+                    motors.get(Constants.frontRightName).device,
+                    motors.get(Constants.backLeftName).device,
+                    motors.get(Constants.backRightName).device,
+                    imu.device);
         };
-        opMode.hardwareMap = hardwareMap;
         opMode.telemetry = SimRobot.telemetry(driverStation);
         opMode.gamepad1 = gamepad1;
         opMode.gamepad2 = gamepad2;

@@ -46,33 +46,31 @@ public class HardwareRulesTest {
     }
 
     @Test
-    public void eachDeviceIsAskedForOnlyOnce() {
+    public void theHardwareIsResolvedExactlyOnce() {
         OpModeHarness h = new OpModeHarness(new L15Combined());
         h.init();
         h.start();
         h.loops(5, 0);
-        // Four motors and an IMU. Pedro's drivetrain is a fake in tests, so
-        // what is counted here is entirely our own.
-        assertEquals("five devices, five lookups", 5, h.lookups);
+        assertEquals("once, at init", 1, h.lookups);
     }
 
     @Test
-    public void theHardwareIsTheOneTheLocalizerReads() {
+    public void theLocalizerReadsTheDevicesTheOpModeWasGiven() {
         OpModeHarness h = new OpModeHarness(new L15Combined());
         h.init();
-        RobotHardware hardware = new RobotHardware(h.hardwareMap);
+        L15Combined opMode = (L15Combined) h.opMode();
         assertSame("the same motor object, not a second handle",
-                h.motors.get(Constants.frontLeftName), hardware.frontLeft);
-        assertSame(h.motors.get(Constants.frontRightName), hardware.frontRight);
-        assertSame(h.motors.get(Constants.backLeftName), hardware.backLeft);
-        assertSame(h.motors.get(Constants.backRightName), hardware.backRight);
-        assertSame(h.imu, hardware.imu);
+                h.motors.get(Constants.frontLeftName).device, opMode.hardware.frontLeft);
+        assertSame(h.motors.get(Constants.frontRightName).device, opMode.hardware.frontRight);
+        assertSame(h.motors.get(Constants.backLeftName).device, opMode.hardware.backLeft);
+        assertSame(h.motors.get(Constants.backRightName).device, opMode.hardware.backRight);
+        assertSame(h.imu.device, opMode.hardware.imu);
     }
 
     @Test
     public void noDeviceNameAppearsOutsideConstants() throws Exception {
-        Path base = Paths.get("src/main/java/org/firstinspires/ftc/teamcode");
-        if (!Files.isDirectory(base)) return;          // run from another folder
+        Path base = sourceRoot();
+        assertNotNull("could not find the sources to scan", base);
 
         String[] names = {Constants.frontLeftName, Constants.frontRightName,
                 Constants.backLeftName, Constants.backRightName, Constants.imuName};
@@ -83,14 +81,45 @@ public class HardwareRulesTest {
                 String name = file.getFileName().toString();
                 if (name.equals("Constants.java")) continue;
                 if (file.toString().contains("procedures")) continue;   // tuners ask the driver
-                String text = new String(Files.readAllBytes(file), "UTF-8");
+                String code = withoutComments(new String(Files.readAllBytes(file), "UTF-8"));
                 for (String device : names) {
-                    if (text.contains("\"" + device + "\"")) {
+                    if (code.contains("\"" + device + "\"")) {
                         offenders.add(name + " hardcodes \"" + device + "\"");
                     }
                 }
             }
         }
         if (!offenders.isEmpty()) fail(String.join("; ", offenders));
+    }
+
+    /**
+     * The sources, whether the tests run from the module folder (Gradle) or the
+     * repository root (an IDE, or by hand). Returns null if neither is there --
+     * and the test fails on that rather than passing silently, which is how a
+     * real offender slipped through once.
+     */
+    private static Path sourceRoot() {
+        for (String candidate : new String[]{
+                "src/main/java/org/firstinspires/ftc/teamcode",
+                "TeamCode/src/main/java/org/firstinspires/ftc/teamcode"}) {
+            Path path = Paths.get(candidate);
+            if (Files.isDirectory(path)) return path;
+        }
+        return null;
+    }
+
+    /** Strips // and /* *\/ comments, so documentation can say a name aloud. */
+    static String withoutComments(String source) {
+        return source
+                .replaceAll("(?s)/\\*.*?\\*/", "")
+                .replaceAll("(?m)//.*$", "");
+    }
+
+    @Test
+    public void theCommentStripperLeavesCodeAlone() {
+        // The whitespace before a trailing comment stays; only the comment goes.
+        assertEquals("String a = \"keep\";   \n",
+                withoutComments("String a = \"keep\";   // drop \"this\"\n"));
+        assertEquals("\ncode();", withoutComments("/** doc with \"imu\" in it */\ncode();"));
     }
 }

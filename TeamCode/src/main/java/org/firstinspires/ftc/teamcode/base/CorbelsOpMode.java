@@ -112,7 +112,7 @@ public abstract class CorbelsOpMode extends OpMode {
         // Every device, looked up once, before the match starts. A name that
         // doesn't match the configuration fails here, where it can be read --
         // not halfway through a match.
-        hardware = new RobotHardware(hardwareMap);
+        hardware = RobotFactory.hardware.apply(hardwareMap);
         follower = RobotFactory.follower.apply(hardwareMap);
         onInit();
         follower.update();

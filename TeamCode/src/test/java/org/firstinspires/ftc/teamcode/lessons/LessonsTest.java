@@ -350,7 +350,8 @@ public class LessonsTest {
         h.loop();
         assertEquals(Follower.Mode.HOLD, follower.mode());
         assertEquals("AUTO", ((L15Combined) h.opMode()).values().get("drive/mode"));
-        assertEquals("the pose it was told to go to", -45.0,
+        // Pedro normalises headings to [0, 360), so -45 comes back as 315.
+        assertEquals("the pose it was told to go to", 315.0,
                 (Double) ((L15Combined) h.opMode()).values().get("drive/target_deg"), 1e-6);
 
         h.gamepad1.left_stick_y = -1.0f;

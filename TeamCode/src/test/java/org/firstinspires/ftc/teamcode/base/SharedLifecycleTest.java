@@ -98,17 +98,17 @@ public class SharedLifecycleTest {
     }
 
     @Test
-    public void bothLookUpTheHardwareExactlyOnce() {
+    public void bothResolveTheHardwareExactlyOnce() {
         OpModeHarness teleop = new OpModeHarness(new SampleTeleOp());
         teleop.init();
         teleop.start();
         teleop.loops(5, 0);
-        assertEquals("four motors and an IMU", 5, teleop.lookups);
+        assertEquals("once, at init", 1, teleop.lookups);
 
         OpModeHarness auto = new OpModeHarness(new SampleAuto());
         auto.init();
         auto.start();
         auto.loops(5, 0);
-        assertEquals("and the same for an auto", 5, auto.lookups);
+        assertEquals("and the same for an auto", 1, auto.lookups);
     }
 }
