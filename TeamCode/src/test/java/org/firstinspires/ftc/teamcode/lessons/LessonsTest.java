@@ -278,7 +278,7 @@ public class LessonsTest {
 
         h.gamepad1.left_stick_y = -1.0f;
         h.loop();
-        assertEquals("field relative by default", 0.0, h.forward(), 1e-3);
+        assertEquals("field relative with nothing held", 0.0, h.forward(), 1e-3);
 
         h.gamepad1.right_bumper = true;
         h.loop();
@@ -290,11 +290,73 @@ public class LessonsTest {
         h.loop();
         h.gamepad1.y = false;
         h.loop();
-        assertEquals(Follower.Mode.HOLD, follower.mode());
+        assertEquals("Y hands the robot to the follower", Follower.Mode.HOLD, follower.mode());
         h.stop();
 
         assertTrue("the shadow localizer is still running",
                 ((L15Combined) h.opMode()).values().containsKey("Localizer/encoders/x_in"));
+    }
+
+    @Test
+    public void l15_aPointsAt45DegreesWhileTheDriverKeepsDriving() {
+        OpModeHarness h = new OpModeHarness(new L15Combined());
+        Follower follower = h.robot.follower;
+        h.init();
+        h.start();
+        follower.setPose(POSES.of(72, 72, 0));       // facing 0, wants 45
+
+        h.gamepad1.a = true;
+        h.loop();
+        h.gamepad1.a = false;
+        h.gamepad1.left_stick_y = -1.0f;             // still translating
+        h.loop();
+
+        L15Combined opMode = (L15Combined) h.opMode();
+        assertEquals("aiming", true, opMode.values().get("drive/aiming"));
+        assertEquals("at 45 degrees", 45.0, (Double) opMode.values().get("drive/target_deg"), 1e-6);
+        assertTrue("turning toward it", h.turn() > 0);
+        assertTrue("and still driving", Math.abs(h.forward()) + Math.abs(h.strafe()) > 0);
+    }
+
+    @Test
+    public void l15_theTurnStickTakesAimingBack() {
+        OpModeHarness h = new OpModeHarness(new L15Combined());
+        h.robot.follower.setPose(POSES.of(72, 72, 0));
+        h.init();
+        h.start();
+
+        h.gamepad1.a = true;
+        h.loop();
+        h.gamepad1.a = false;
+        h.gamepad1.right_stick_x = 0.8f;             // the driver steers
+        h.loop();
+
+        assertEquals("the stick wins", 0.8, h.turn(), 1e-3);
+        assertEquals("not aiming any more", false,
+                ((L15Combined) h.opMode()).values().get("drive/aiming"));
+    }
+
+    @Test
+    public void l15_yDrivesToTheStatedPoseAndAStickTakesItBack() {
+        OpModeHarness h = new OpModeHarness(new L15Combined());
+        Follower follower = h.robot.follower;
+        h.init();
+        h.start();
+        follower.setPose(POSES.of(72, 72, 90));
+
+        h.gamepad1.y = true;
+        h.loop();
+        h.gamepad1.y = false;
+        h.loop();
+        assertEquals(Follower.Mode.HOLD, follower.mode());
+        assertEquals("AUTO", ((L15Combined) h.opMode()).values().get("drive/mode"));
+        assertEquals("the pose it was told to go to", -45.0,
+                (Double) ((L15Combined) h.opMode()).values().get("drive/target_deg"), 1e-6);
+
+        h.gamepad1.left_stick_y = -1.0f;
+        h.loop();
+        assertEquals("a stick takes it back", "FIELD",
+                ((L15Combined) h.opMode()).values().get("drive/mode"));
     }
 
     // ---------------------------------------------------------- helpers

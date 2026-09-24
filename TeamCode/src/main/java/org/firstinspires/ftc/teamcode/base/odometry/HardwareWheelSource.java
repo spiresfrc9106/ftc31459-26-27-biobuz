@@ -1,17 +1,19 @@
 package org.firstinspires.ftc.teamcode.base.odometry;
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.teamcode.pedro.Constants;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.base.RobotHardware;
 
 /**
  * Reads the four drive motors' encoders and the Control Hub's IMU.
  *
- * <p>The only part of the encoder localizer that touches hardware, so the
- * maths can be tested on a laptop. Motor names must match the robot
- * configuration, and TICKS_PER_INCH comes from measuring: push the robot a
- * known distance and divide.
+ * <p>The only part of the encoder localizer that touches hardware, so the maths
+ * can be tested on a laptop. It looks nothing up: the devices come from
+ * {@link RobotHardware}, resolved once at init.
+ *
+ * <p>TICKS_PER_INCH comes from measuring: push the robot a known distance and
+ * divide.
  */
 public class HardwareWheelSource implements WheelSource {
 
@@ -22,27 +24,26 @@ public class HardwareWheelSource implements WheelSource {
     private final DcMotorEx frontRight;
     private final DcMotorEx backLeft;
     private final DcMotorEx backRight;
-    private final HeadingSource imu;
+    private final HeadingSource heading;
 
     /** Where the heading comes from; separated so tests can supply one. */
     public interface HeadingSource {
         double radians();
     }
 
-    public HardwareWheelSource(HardwareMap map) {
-        this(map, Constants.motorNames[0],
-                Constants.motorNames[1],
-                Constants.motorNames[2],
-                Constants.motorNames[3], new ImuHeading(map));
+    /** The usual case: the robot's own motors and IMU. */
+    public HardwareWheelSource(RobotHardware hardware) {
+        this(hardware.frontLeft, hardware.frontRight, hardware.backLeft, hardware.backRight,
+                () -> hardware.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
     }
 
-    public HardwareWheelSource(HardwareMap map, String fl, String fr, String bl, String br,
-                               HeadingSource imu) {
-        this.frontLeft = map.get(DcMotorEx.class, fl);
-        this.frontRight = map.get(DcMotorEx.class, fr);
-        this.backLeft = map.get(DcMotorEx.class, bl);
-        this.backRight = map.get(DcMotorEx.class, br);
-        this.imu = imu;
+    public HardwareWheelSource(DcMotorEx frontLeft, DcMotorEx frontRight,
+                               DcMotorEx backLeft, DcMotorEx backRight, HeadingSource heading) {
+        this.frontLeft = frontLeft;
+        this.frontRight = frontRight;
+        this.backLeft = backLeft;
+        this.backRight = backRight;
+        this.heading = heading;
     }
 
     @Override
@@ -56,6 +57,6 @@ public class HardwareWheelSource implements WheelSource {
 
     @Override
     public double headingRadians() {
-        return imu.radians();
+        return heading.radians();
     }
 }

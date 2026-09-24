@@ -66,14 +66,21 @@ public final class OpModeHarness {
     public final FakeImu imu = new FakeImu();
     public final HardwareMap hardwareMap = new HardwareMap();
 
+    /** How many times anything has asked the HardwareMap for a device. */
+    public int lookups;
+
     private final OpMode opMode;
 
     public OpModeHarness(OpMode opMode) {
         this.opMode = opMode;
-        for (String name : Constants.motorNames) {
+        for (String name : new String[]{Constants.frontLeftName, Constants.frontRightName,
+                Constants.backLeftName, Constants.backRightName}) {
             motors.put(name, new FakeMotor());
         }
-        hardwareMap.devices = (type, name) -> type == IMU.class ? imu : motors.get(name);
+        hardwareMap.devices = (type, name) -> {
+            lookups++;
+            return type == IMU.class ? imu : motors.get(name);
+        };
         opMode.hardwareMap = hardwareMap;
         opMode.telemetry = SimRobot.telemetry(driverStation);
         opMode.gamepad1 = gamepad1;
@@ -83,10 +90,10 @@ public final class OpModeHarness {
 
     /** Sets all four encoders, in ticks. */
     public void setWheelTicks(int frontLeft, int frontRight, int backLeft, int backRight) {
-        motors.get(Constants.motorNames[0]).ticks = frontLeft;
-        motors.get(Constants.motorNames[1]).ticks = frontRight;
-        motors.get(Constants.motorNames[2]).ticks = backLeft;
-        motors.get(Constants.motorNames[3]).ticks = backRight;
+        motors.get(Constants.frontLeftName).ticks = frontLeft;
+        motors.get(Constants.frontRightName).ticks = frontRight;
+        motors.get(Constants.backLeftName).ticks = backLeft;
+        motors.get(Constants.backRightName).ticks = backRight;
     }
 
     /** The OpMode under test, for reading what it logged. */
