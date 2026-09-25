@@ -39,6 +39,7 @@ public final class OpModeHarness {
     public static final class FakeMotor implements InvocationHandler {
         public int ticks;
         public double power;
+        public double velocity;
 
         /** The motor to hand to code that wants a DcMotorEx. */
         public final DcMotorEx device = (DcMotorEx) Proxy.newProxyInstance(
@@ -49,6 +50,8 @@ public final class OpModeHarness {
             switch (method.getName()) {
                 case "getCurrentPosition":
                     return ticks;
+                case "getVelocity":
+                    return velocity;
                 case "setPower":
                     power = (Double) args[0];
                     return null;
@@ -105,6 +108,14 @@ public final class OpModeHarness {
     /** How many times anything has resolved the robot's hardware. */
     public int lookups;
 
+    /** Sets what each motor reports for velocity, in ticks per second. */
+    public void velocities(double frontLeft, double frontRight, double backLeft, double backRight) {
+        motors.get(Constants.frontLeftName).velocity = frontLeft;
+        motors.get(Constants.frontRightName).velocity = frontRight;
+        motors.get(Constants.backLeftName).velocity = backLeft;
+        motors.get(Constants.backRightName).velocity = backRight;
+    }
+
     /** Where this harness's flight logs go. */
     public File logFolder;
 
@@ -137,7 +148,7 @@ public final class OpModeHarness {
         opMode.telemetry = SimRobot.telemetry(driverStation);
         opMode.gamepad1 = gamepad1;
         opMode.gamepad2 = gamepad2;
-        RobotFactory.follower = map -> robot.follower;
+        RobotFactory.follower = (map, drivetrain) -> robot.follower;
         // Flight logs go to a temp folder, not the robot's storage or the
         // working directory. Each harness gets its own.
         try {

@@ -12,6 +12,7 @@ import com.pedropathing.math.Pose;
 
 
 import org.firstinspires.ftc.teamcode.base.OpModeHarness;
+import org.firstinspires.ftc.teamcode.pedro.Constants;
 import org.junit.After;
 import org.junit.Test;
 
@@ -358,6 +359,65 @@ public class LessonsTest {
         h.loop();
         assertEquals("a stick takes it back", "FIELD",
                 ((L15Combined) h.opMode()).values().get("drive/mode"));
+    }
+
+    @Test
+    public void l16_theSticksCommandASpeedAndTheWheelsAreCorrectedTowardsIt() {
+        OpModeHarness h = new OpModeHarness(new L16VelocityDrive());
+        h.init();
+        h.start();
+
+        h.gamepad1.left_stick_y = -1.0f;            // full forward
+        h.loop();
+        L16VelocityDrive opMode = (L16VelocityDrive) h.opMode();
+
+        assertEquals("full stick asks for a speed, in inches per second",
+                40.0, (Double) opMode.values().get("command/forward_ips"), 1e-6);
+        assertEquals("and every wheel must travel at it",
+                40.0, (Double) opMode.values().get("wheel/frontLeft/target_ips"), 1e-6);
+        assertEquals("the wheels are not moving yet, so the error is the whole target",
+                40.0, (Double) opMode.values().get("wheel/frontLeft/error_ips"), 1e-6);
+
+        // the measured feedforward for 40 in/s, plus the feedback on a 40 in/s error
+        assertEquals(Constants.powerPerInchPerSecond * 40 + 0.008 * 40,
+                (Double) opMode.values().get("wheel/frontLeft/power"), 1e-6);
+    }
+
+    @Test
+    public void l16_whenTheWheelsAreUpToSpeedOnlyTheFeedforwardRemains() {
+        OpModeHarness h = new OpModeHarness(new L16VelocityDrive());
+        h.init();
+        h.start();
+        // 40 in/s at the measured ticks per inch
+        int ticks = (int) Math.round(40 * Constants.ticksPerInch);
+        h.velocities(ticks, ticks, ticks, ticks);
+
+        h.gamepad1.left_stick_y = -1.0f;
+        h.loop();
+        L16VelocityDrive opMode = (L16VelocityDrive) h.opMode();
+
+        assertEquals("measured speed matches the command", 40.0,
+                (Double) opMode.values().get("wheel/frontLeft/actual_ips"), 1e-6);
+        assertEquals("so no correction is needed", 0.0,
+                (Double) opMode.values().get("wheel/frontLeft/error_ips"), 1e-6);
+        assertEquals("and the power is the feedforward alone",
+                Constants.powerPerInchPerSecond * 40,
+                (Double) opMode.values().get("wheel/frontLeft/power"), 1e-6);
+    }
+
+    @Test
+    public void l16_turningAskesEachSideForOppositeSpeeds() {
+        OpModeHarness h = new OpModeHarness(new L16VelocityDrive());
+        h.init();
+        h.start();
+        h.gamepad1.right_stick_x = -1.0f;           // full counter-clockwise
+        h.loop();
+        L16VelocityDrive opMode = (L16VelocityDrive) h.opMode();
+
+        double left = (Double) opMode.values().get("wheel/frontLeft/target_ips");
+        double right = (Double) opMode.values().get("wheel/frontRight/target_ips");
+        assertEquals("opposite", -left, right, 1e-6);
+        assertTrue("turning counter-clockwise drives the left side backwards", left < 0);
     }
 
     // ---------------------------------------------------------- helpers

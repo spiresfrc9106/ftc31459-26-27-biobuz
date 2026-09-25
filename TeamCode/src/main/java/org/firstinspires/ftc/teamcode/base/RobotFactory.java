@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.base;
 
+import com.pedropathing.drivetrain.Drivetrain;
 import com.pedropathing.follower.Follower;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -16,7 +18,10 @@ import java.util.function.Function;
 public final class RobotFactory {
 
     /** Builds the follower. Tests swap in a simulated drivetrain. */
-    public static Function<HardwareMap, Follower> follower = Constants::create;
+    /** The drivetrain the follower drives, and that a lesson can command directly. */
+    public static Function<RobotHardware, CorbelsMecanum> drivetrain = CorbelsMecanum::new;
+
+    public static BiFunction<HardwareMap, Drivetrain, Follower> follower = Constants::create;
 
     /**
      * Finds every device, by the names in {@link Constants}. Tests swap in

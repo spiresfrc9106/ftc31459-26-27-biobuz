@@ -5,11 +5,14 @@ import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.har
 import com.pedropathing.algorithm.Foresight;
 import com.pedropathing.algorithm.ForesightConfig;
 import com.pedropathing.controllers.Controller;
+import com.pedropathing.drivetrain.Drivetrain;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Matrix;
 import com.pedropathing.math.Vector2D;
-import com.pedropathing.revhub.drivetrains.Mecanum;
 import com.pedropathing.revhub.drivetrains.MecanumConfig;
+
+import org.firstinspires.ftc.teamcode.base.CorbelsMecanum;
+import org.firstinspires.ftc.teamcode.base.RobotHardware;
 import com.pedropathing.revhub.localizers.PinpointConfig;
 import com.pedropathing.revhub.localizers.PinpointLocalizer;
 import com.pedropathing.tuning.autotune.Procedure;
@@ -35,17 +38,49 @@ public class Constants {
     public static String backRightName = "Back Right";
     public static String imuName = "imu";
 
+    // ---- Drivetrain. One source of truth, read by both the Pedro config and
+    // ---- our own CorbelsMecanum. -------------------------------------------
+
+    public static DcMotorSimple.Direction frontLeftDirection = DcMotorSimple.Direction.FORWARD;
+    public static DcMotorSimple.Direction frontRightDirection = DcMotorSimple.Direction.REVERSE;
+    public static DcMotorSimple.Direction backLeftDirection = DcMotorSimple.Direction.FORWARD;
+    public static DcMotorSimple.Direction backRightDirection = DcMotorSimple.Direction.REVERSE;
+
+    /** Brake rather than coast when a driver releases the sticks. */
+    public static boolean manualBrakeMode = true;
+
+    /**
+     * Ticks per inch of wheel travel, and the fastest a wheel actually goes.
+     * MEASURE BOTH on your robot: push it a known distance for the first, and
+     * drive flat out and read the velocity for the second.
+     */
+    public static double ticksPerInch = 45.0;          // MEASURE: run L17a
+
+    /** How far a wheel sits from the middle, inches. MEASURE: run L17b. */
+    public static double turnRadiusInches = 8.0;
+
+    /**
+     * The fastest the robot goes, inches per second, and the power it takes to
+     * ask for one inch per second. Both come from AutoTune:
+     * maxAchievableForwardVelocity, maxAchievableStrafeVelocity, and the coast
+     * feedforward. Strafing is slower than driving because mecanum rollers
+     * waste some of it sideways.
+     */
+    public static double maxForwardInchesPerSecond = 64.43298446564829;
+    public static double maxStrafeInchesPerSecond = 43.595132915165195;
+    public static double powerPerInchPerSecond = 0.016695978563625216;
+
     public static MecanumConfig drivetrainConfig = new MecanumConfig(c -> {
         c.frontLeftName.set(frontLeftName);
         c.frontRightName.set(frontRightName);
         c.backLeftName.set(backLeftName);
         c.backRightName.set(backRightName);
-        c.frontLeftDirection.set(DcMotorSimple.Direction.FORWARD);
-        c.frontRightDirection.set(DcMotorSimple.Direction.REVERSE);
-        c.backLeftDirection.set(DcMotorSimple.Direction.FORWARD);
-        c.backRightDirection.set(DcMotorSimple.Direction.REVERSE);
+        c.frontLeftDirection.set(frontLeftDirection);
+        c.frontRightDirection.set(frontRightDirection);
+        c.backLeftDirection.set(backLeftDirection);
+        c.backRightDirection.set(backRightDirection);
 
-        c.manualBrakeMode.set(true);
+        c.manualBrakeMode.set(manualBrakeMode);
     });
 
     public static PinpointConfig localizerConfig = new PinpointConfig(c -> {
@@ -92,11 +127,19 @@ public class Constants {
     );
 
 
+    /**
+     * For code that has no RobotHardware of its own -- the standalone examples.
+     * Prefer the two-argument form, which shares the already-resolved devices.
+     */
     public static Follower create(HardwareMap h) {
+        return create(h, new CorbelsMecanum(new RobotHardware(h)));
+    }
+
+    public static Follower create(HardwareMap h, Drivetrain drivetrain) {
         return new Follower(
-                new PinpointLocalizer(h, localizerConfig), // Your Localizer object
-                new Mecanum(h, drivetrainConfig),       // Your Drivetrain object
-                new Foresight(foresightConfig)          // Your Foresight algorithm object
+                new PinpointLocalizer(h, localizerConfig),   // Your Localizer object
+                drivetrain,                                  // Your Drivetrain object
+                new Foresight(foresightConfig)               // Your Foresight algorithm object
         );
     }
 
