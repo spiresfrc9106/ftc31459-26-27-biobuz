@@ -1,0 +1,108 @@
+package org.firstinspires.ftc.teamcode.base;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import org.firstinspires.ftc.teamcode.sysid.SysIdDrive;
+import org.junit.Test;
+
+/**
+ * The data SysId reads. Its analyser splits the test-state string on the last
+ * dash and throws away anything it does not recognise, so these values are not
+ * ours to choose.
+ */
+public class SysIdTest {
+
+    @Test
+    public void theStateStringsAreTheOnesTheAnalyserAccepts() {
+        assertEquals("quasistatic-forward", SysIdRecorder.State.QUASISTATIC_FORWARD.toString());
+        assertEquals("quasistatic-reverse", SysIdRecorder.State.QUASISTATIC_REVERSE.toString());
+        assertEquals("dynamic-forward", SysIdRecorder.State.DYNAMIC_FORWARD.toString());
+        assertEquals("dynamic-reverse", SysIdRecorder.State.DYNAMIC_REVERSE.toString());
+        assertEquals("none", SysIdRecorder.State.NONE.toString());
+    }
+
+    @Test
+    public void everyStateSplitsIntoATestAndADirectionTheAnalyserKnows() {
+        for (SysIdRecorder.State state : SysIdRecorder.State.values()) {
+            if (state == SysIdRecorder.State.NONE) continue;
+            String text = state.toString();
+            int dash = text.lastIndexOf('-');
+            String test = text.substring(0, dash);
+            String direction = text.substring(dash + 1);
+            assertTrue(test, test.equals("quasistatic") || test.equals("dynamic"));
+            assertTrue(direction, direction.equals("forward") || direction.equals("reverse"));
+        }
+    }
+
+    @Test
+    public void appliedVoltsAreThePowerTimesWhateverTheBatteryIsGiving() {
+        assertEquals(12.4, SysIdRecorder.appliedVolts(1.0, 12.4), 1e-9);
+        assertEquals("a flatter battery gives less for the same power",
+                5.5, SysIdRecorder.appliedVolts(0.5, 11.0), 1e-9);
+        assertEquals(-6.2, SysIdRecorder.appliedVolts(-0.5, 12.4), 1e-9);
+    }
+
+    @Test
+    public void theQuasistaticTestRampsAndTheDynamicOneSteps() {
+        assertEquals("ramps from nothing", 0.0,
+                SysIdDrive.voltsFor(SysIdRecorder.State.QUASISTATIC_FORWARD, 0, 0.25, 4), 1e-9);
+        assertEquals("a quarter volt per second", 2.5,
+                SysIdDrive.voltsFor(SysIdRecorder.State.QUASISTATIC_FORWARD, 10, 0.25, 4), 1e-9);
+        assertEquals("backwards is the same ramp, negative", -2.5,
+                SysIdDrive.voltsFor(SysIdRecorder.State.QUASISTATIC_REVERSE, 10, 0.25, 4), 1e-9);
+        assertEquals("the step is there from the first instant", 4.0,
+                SysIdDrive.voltsFor(SysIdRecorder.State.DYNAMIC_FORWARD, 0, 0.25, 4), 1e-9);
+        assertEquals(-4.0,
+                SysIdDrive.voltsFor(SysIdRecorder.State.DYNAMIC_REVERSE, 5, 0.25, 4), 1e-9);
+        assertEquals("nothing when no test is running", 0.0,
+                SysIdDrive.voltsFor(SysIdRecorder.State.NONE, 5, 0.25, 4), 1e-9);
+    }
+
+    @Test
+    public void theChannelNamesFollowWpilibsConvention() {
+        SysIdRecorder recorder = new SysIdRecorder(null, "drive");
+        assertEquals("sysid-test-state-drive", recorder.stateChannel());
+    }
+
+    @Test
+    public void theOpModeRunsOnlyWhileTheTriggerIsHeld() {
+        OpModeHarness h = new OpModeHarness(new SysIdDrive());
+        h.init();
+        h.start();
+        h.loop();
+        SysIdDrive opMode = (SysIdDrive) h.opMode();
+        assertEquals(false, opMode.values().get("sysid/running"));
+        assertEquals("nothing moves until asked", 0.0,
+                (Double) opMode.values().get("sysid/power"), 1e-9);
+
+        h.gamepad1.right_trigger = 1.0f;
+        h.loops(3, 10);
+        assertEquals(true, opMode.values().get("sysid/running"));
+        assertTrue("and then it ramps", (Double) opMode.values().get("sysid/volts_commanded") > 0);
+
+        h.gamepad1.right_trigger = 0f;
+        h.loop();
+        assertEquals(false, opMode.values().get("sysid/running"));
+        assertEquals(0.0, (Double) opMode.values().get("sysid/power"), 1e-9);
+    }
+
+    @Test
+    public void aFlatterBatteryMeansMorePowerForTheSameVolts() {
+        OpModeHarness h = new OpModeHarness(new SysIdDrive());
+        h.batteryVolts = 12.0;
+        h.init();
+        h.start();
+        h.gamepad1.dpad_right = true;              // dynamic forward: a 4 V step
+        h.loop();
+        h.gamepad1.right_trigger = 1.0f;
+        h.loop();
+        SysIdDrive opMode = (SysIdDrive) h.opMode();
+        assertEquals(4.0 / 12.0, (Double) opMode.values().get("sysid/power"), 1e-6);
+
+        h.batteryVolts = 10.0;
+        h.loop();
+        assertEquals("same volts asked for, more power needed",
+                4.0 / 10.0, (Double) opMode.values().get("sysid/power"), 1e-6);
+    }
+}
