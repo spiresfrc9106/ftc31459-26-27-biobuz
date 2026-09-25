@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import io.github.mikestitt.corbelsflightlog.ftc.FtcFlightLog;
 
@@ -105,6 +106,20 @@ public final class OpModeHarness {
     public final Map<String, String> driverStation = SimRobot.newCapture();
     public final Map<String, FakeMotor> motors = new HashMap<>();
     public final FakeImu imu = new FakeImu();
+
+    /** What the fake battery reports, in volts. */
+    public double batteryVolts = 12.0;
+
+    /**
+     * The battery to hand to code that wants a VoltageSensor. A {@link Proxy}
+     * for the same reason {@link FakeMotor} is one, and it reads
+     * {@link #batteryVolts} at the moment it is asked.
+     */
+    public final VoltageSensor battery = (VoltageSensor) Proxy.newProxyInstance(
+            VoltageSensor.class.getClassLoader(), new Class<?>[]{VoltageSensor.class},
+            (proxy, method, args) -> method.getName().equals("getVoltage")
+                    ? batteryVolts
+                    : defaultValue(method.getReturnType()));
     /** How many times anything has resolved the robot's hardware. */
     public int lookups;
 
@@ -143,7 +158,8 @@ public final class OpModeHarness {
                     motors.get(Constants.frontRightName).device,
                     motors.get(Constants.backLeftName).device,
                     motors.get(Constants.backRightName).device,
-                    imu.device);
+                    imu.device,
+                    battery);
         };
         opMode.telemetry = SimRobot.telemetry(driverStation);
         opMode.gamepad1 = gamepad1;
