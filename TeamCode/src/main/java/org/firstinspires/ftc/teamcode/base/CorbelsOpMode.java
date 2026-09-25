@@ -43,6 +43,12 @@ public abstract class CorbelsOpMode extends OpMode {
     protected RobotHardware hardware;
 
     protected Follower follower;
+
+    /**
+     * The drivetrain, for a lesson that drives the wheels itself. The follower
+     * drives it every update; see {@link CorbelsMecanum#driveWheels}.
+     */
+    protected CorbelsMecanum drivetrain;
     protected PanelsLogger log;
 
     /**
@@ -144,7 +150,8 @@ public abstract class CorbelsOpMode extends OpMode {
         // Robot Controller closes it if the OpMode never runs.
         flight = FtcFlightLog.open(this);
         pedro = new PedroFlightLog(flight, "Robot");
-        follower = RobotFactory.follower.apply(hardwareMap);
+        drivetrain = RobotFactory.drivetrain.apply(hardware);
+        follower = RobotFactory.follower.apply(hardwareMap, drivetrain);
         onInit();
         follower.update();
         telemetry.addLine("Panels: http://192.168.43.1:8001");

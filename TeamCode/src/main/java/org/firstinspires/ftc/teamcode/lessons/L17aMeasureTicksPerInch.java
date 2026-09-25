@@ -1,0 +1,87 @@
+package org.firstinspires.ftc.teamcode.lessons;
+
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+import org.firstinspires.ftc.teamcode.base.Calibration;
+import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
+import org.firstinspires.ftc.teamcode.pedro.Constants;
+
+/**
+ * L17a: measure how many encoder ticks make an inch -- by pushing the robot.
+ *
+ * <p>Lesson 16 needed to know how fast a wheel was turning in inches per second,
+ * and the code was given a number to convert with. This measures it instead.
+ *
+ * <p>The trick is that the robot already knows how far it went: the Pinpoint
+ * measures the floor with its own wheels, and it is already tuned. So push the
+ * robot and compare two accounts of the same journey -- the Pinpoint's, in
+ * inches, and the drive encoders', in ticks. The ratio is the constant.
+ *
+ * <p><b>What to do.</b> Press start. Push the robot slowly straight forward,
+ * at least {@link #NEEDED_INCHES} inches, keeping it pointing the same way.
+ * Read the number off the Driver Station and put it in
+ * {@link Constants#ticksPerInch}.
+ *
+ * <p>Push slowly: a wheel that slips travels without turning, and the
+ * measurement comes out short. Do it three times and see whether you get the
+ * same answer.
+ */
+@TeleOp(name = "L17a Measure ticks per inch", group = "Lessons")
+public class L17aMeasureTicksPerInch extends CorbelsTeleOp {
+
+    private static final double NEEDED_INCHES = 36;
+
+    private boolean savedBrakeMode;
+    private double[] startTicks;
+    private double startX, startY;
+    private double inches, ticks;
+
+    @Override
+    protected void bindings() {
+        // The wheels must roll freely, so no braking while we push.
+        savedBrakeMode = Constants.manualBrakeMode;
+        Constants.manualBrakeMode = false;
+        startTicks = ticks();
+        startX = follower.pose().x();
+        startY = follower.pose().y();
+    }
+
+    @Override
+    protected void drive() {
+        drivetrain.driveWheels(0, 0, 0, 0);       // no power: we are pushing
+
+        double[] now = ticks();
+        ticks = Calibration.forwardPart(now[0] - startTicks[0], now[1] - startTicks[1],
+                now[2] - startTicks[2], now[3] - startTicks[3]);
+        double dx = follower.pose().x() - startX;
+        double dy = follower.pose().y() - startY;
+        inches = Math.hypot(dx, dy);
+
+        double measured = Calibration.ticksPerInch(ticks, inches);
+        data("measure/inches", inches);
+        data("measure/ticks", ticks);
+        data("measure/ticksPerInch", measured);
+
+        telemetry.addData("Push the robot forward", "%.1f of %.0f inches", inches, NEEDED_INCHES);
+        telemetry.addData("Encoders counted", "%.0f ticks", ticks);
+        if (inches >= NEEDED_INCHES) {
+            telemetry.addLine();
+            telemetry.addData("ticksPerInch", "%.2f", measured);
+            telemetry.addLine("Put that in Constants.ticksPerInch, then run it again to check.");
+        } else {
+            telemetry.addData("Currently", "%.2f ticks per inch", measured);
+        }
+        telemetry.addData("Configured now", "%.2f", Constants.ticksPerInch);
+    }
+
+    private double[] ticks() {
+        return new double[]{
+                hardware.frontLeft.getCurrentPosition(), hardware.frontRight.getCurrentPosition(),
+                hardware.backLeft.getCurrentPosition(), hardware.backRight.getCurrentPosition()};
+    }
+
+    @Override
+    protected void afterLoop() {
+        Constants.manualBrakeMode = savedBrakeMode;
+    }
+}
