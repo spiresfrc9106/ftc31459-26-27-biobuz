@@ -91,8 +91,8 @@ public class PanelsLogger {
     }
 
     /**
-     * Sink for Pedro's own follower log. Wire with:
-     * {@code Constants.create(hardwareMap).withLogger(log -> panelsLogger.pedro(log.toString()))}
+     * Sink for Pedro's own follower log. {@code CorbelsOpMode} wires it as
+     * {@code follower.withLogger(followerLog -> Tracker.logger.pedro(followerLog.toString()))}
      */
     public void pedro(String line) {
         pedroLog = line;

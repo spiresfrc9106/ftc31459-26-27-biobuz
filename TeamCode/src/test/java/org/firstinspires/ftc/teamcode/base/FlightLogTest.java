@@ -45,7 +45,7 @@ public class FlightLogTest {
     }
 
     @Test
-    public void aTeleopRunWritesOneFlightLog() {
+    public void aTeleOpRunWritesOneFlightLog() {
         OpModeHarness h = new OpModeHarness(new SampleTeleOp());
         assertEquals("nothing before init", 0, h.logs().length);
         h.init();

@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Teleops and autos now share one parent. These check that both halves still
+ * TeleOps and autos now share one parent. These check that both halves still
  * get what they used to: hardware at init, the scheduler, the shadow
  * localizers, Panels, and a follower that is stopped at the end.
  */
@@ -63,7 +63,7 @@ public class SharedLifecycleTest {
     }
 
     @Test
-    public void aTeleopGetsHardwareAtInitAndItsHooksInOrder() {
+    public void aTeleOpGetsHardwareAtInitAndItsHooksInOrder() {
         SampleTeleOp opMode = new SampleTeleOp();
         OpModeHarness h = new OpModeHarness(opMode);
 

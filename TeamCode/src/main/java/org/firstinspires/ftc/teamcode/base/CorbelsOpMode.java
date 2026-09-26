@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
  * not: find the hardware, make the follower, run the scheduler, keep Panels and
  * the Driver Station fed.
  *
- * <p>Teleops and autos differ in three places, and those are the hooks below:
+ * <p>TeleOps and autos differ in three places, and those are the hooks below:
  * {@link #onInit}, {@link #onStart} and {@link #afterLoop}. {@link CorbelsTeleOp}
  * and {@link CorbelsAuto} fill them in; a lesson extends one of those, not this.
  *

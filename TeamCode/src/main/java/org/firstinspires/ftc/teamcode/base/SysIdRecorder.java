@@ -36,15 +36,15 @@ public class SysIdRecorder {
         }
     }
 
-    private final FlightLog log;
+    private final FlightLog flightlog;
     private final String name;
 
     /**
-     * @param log  where the channels go
-     * @param name what this mechanism is called, e.g. "drive"
+     * @param flightlog where the channels go
+     * @param name      what this mechanism is called, e.g. "drive"
      */
-    public SysIdRecorder(FlightLog log, String name) {
-        this.log = log;
+    public SysIdRecorder(FlightLog flightlog, String name) {
+        this.flightlog = flightlog;
         this.name = name;
     }
 
@@ -55,7 +55,7 @@ public class SysIdRecorder {
 
     /** Records which test is running, or {@link State#NONE} between them. */
     public void state(State state) {
-        if (log != null) log.recordOutput(stateChannel(), state.toString());
+        if (flightlog != null) flightlog.recordOutput(stateChannel(), state.toString());
     }
 
     /**
@@ -69,10 +69,10 @@ public class SysIdRecorder {
      */
     public void motor(String motor, double power, double batteryVolts,
                       double inches, double inchesPerSec) {
-        if (log == null) return;
-        log.recordOutput("voltage-" + motor + "-" + name, appliedVolts(power, batteryVolts));
-        log.recordOutput("position-" + motor + "-" + name, inches);
-        log.recordOutput("velocity-" + motor + "-" + name, inchesPerSec);
+        if (flightlog == null) return;
+        flightlog.recordOutput("voltage-" + motor + "-" + name, appliedVolts(power, batteryVolts));
+        flightlog.recordOutput("position-" + motor + "-" + name, inches);
+        flightlog.recordOutput("velocity-" + motor + "-" + name, inchesPerSec);
     }
 
     /**
