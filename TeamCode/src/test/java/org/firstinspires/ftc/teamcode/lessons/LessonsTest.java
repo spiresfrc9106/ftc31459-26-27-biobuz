@@ -199,6 +199,25 @@ public class LessonsTest {
         assertEquals(0.0, h.motors.get(Constants.frontLeftName).power, EPS);
     }
 
+    // -------------------------------------------------------------- L6
+
+    @Test
+    public void l6_theFollowerDrivesTheWheelsInsteadOfTheLoop() {
+        OpModeHarness h = new OpModeHarness(new L6FollowerWheels());
+        h.init();
+        h.start();
+
+        h.gamepad1.left_stick_y = -1.0f;      // away from the driver
+        h.gamepad1.left_stick_x = -0.5f;      // and towards its left
+        h.gamepad1.right_stick_x = 0.25f;     // turning to the right
+        h.loop();
+
+        assertEquals("the loop asks the follower to drive forward", 1.0, h.forward(), EPS);
+        assertEquals("and to slide left", 0.5, h.strafe(), EPS);
+        assertEquals("and to turn clockwise, which is a negative turn", -0.25, h.turn(), EPS);
+        h.stop();
+    }
+
     // -------------------------------------------------------------- L8
 
     @Test
