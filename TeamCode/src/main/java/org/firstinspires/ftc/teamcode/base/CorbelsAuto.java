@@ -27,9 +27,4 @@ public abstract class CorbelsAuto extends CorbelsOpMode {
     protected final void onStart() {
         Scheduler.schedule(routine());
     }
-
-    @Override
-    protected final void afterLoop() {
-        telemetry.addData("Pose", describe(follower.pose()));
-    }
 }

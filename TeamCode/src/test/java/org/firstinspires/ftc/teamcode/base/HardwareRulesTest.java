@@ -98,7 +98,7 @@ public class HardwareRulesTest {
      * and the test fails on that rather than passing silently, which is how a
      * real offender slipped through once.
      */
-    private static Path sourceRoot() {
+    static Path sourceRoot() {
         for (String candidate : new String[]{
                 "src/main/java/org/firstinspires/ftc/teamcode",
                 "TeamCode/src/main/java/org/firstinspires/ftc/teamcode"}) {

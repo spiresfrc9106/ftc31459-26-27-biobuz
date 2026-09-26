@@ -114,13 +114,14 @@ public class VoltageResponse extends CorbelsTeleOp {
         Tracker.publish("drive/wheel_ips", wheels.frontLeftInchesPerSecond());
         Tracker.publish("running", running && !finished);
 
-        telemetry.addData("State", running ? (finished ? "DONE" : "phase " + phase) : "hold the right trigger");
+        Tracker.printToDs("State  "
+                + (running ? (finished ? "DONE" : "phase " + phase) : "hold the right trigger"));
         if (running && !finished) {
-            telemetry.addData("Frequency", "%.0f Hz", FREQUENCIES[phase]);
-            telemetry.addData("Phase ends in", "%.1f s", (phase + 1) * PHASE_SECONDS - seconds);
+            Tracker.printToDs("Frequency  %.0f Hz", FREQUENCIES[phase]);
+            Tracker.printToDs("Phase ends in  %.1f s", (phase + 1) * PHASE_SECONDS - seconds);
         }
-        telemetry.addData("Volts", "%.3f   (read took %.0f us)", volts, callMicros);
-        telemetry.addLine("Robot on blocks. Total run: "
+        Tracker.printToDs("Volts  %.3f   (read took %.0f us)", volts, callMicros);
+        Tracker.printToDs("Robot on blocks. Total run: "
                 + (int) (FREQUENCIES.length * PHASE_SECONDS) + " seconds.");
 
         loopAfter();

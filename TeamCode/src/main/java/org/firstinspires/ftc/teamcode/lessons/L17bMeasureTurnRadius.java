@@ -83,17 +83,17 @@ public class L17bMeasureTurnRadius extends CorbelsTeleOp {
         Tracker.publish("measure/wheel_inches", wheelInches);
         Tracker.publish("measure/turnRadius_in", measured);
 
-        telemetry.addData("Spin the robot", "%.2f of %.0f turns",
+        Tracker.printToDs("Spin the robot  %.2f of %.0f turns",
                 Math.abs(radians) / (2 * Math.PI), NEEDED_TURNS);
-        telemetry.addData("Wheels travelled", "%.1f inches", wheelInches);
+        Tracker.printToDs("Wheels travelled  %.1f inches", wheelInches);
         if (Math.abs(radians) >= NEEDED_TURNS * 2 * Math.PI) {
-            telemetry.addLine();
-            telemetry.addData("turn radius", "%.2f inches", measured);
-            telemetry.addLine("Measure the diagonal between wheels and halve it; they should agree.");
+            Tracker.printToDs();
+            Tracker.printToDs("turn radius  %.2f inches", measured);
+            Tracker.printToDs("Measure the diagonal between wheels and halve it; they should agree.");
         } else {
-            telemetry.addData("Currently", "%.2f inches", measured);
+            Tracker.printToDs("Currently  %.2f inches", measured);
         }
-        telemetry.addData("ticksPerInch in use", "%.2f", Constants.ticksPerInch);
+        Tracker.printToDs("ticksPerInch in use  %.2f", Constants.ticksPerInch);
 
         loopAfter();
     }

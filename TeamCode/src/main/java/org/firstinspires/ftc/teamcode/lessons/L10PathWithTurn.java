@@ -11,6 +11,7 @@ import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.base.CorbelsAuto;
+import org.firstinspires.ftc.teamcode.base.Tracker;
 
 /**
  * L10: two moves in a row, and the second one turns.
@@ -45,13 +46,14 @@ public class L10PathWithTurn extends CorbelsAuto {
     }
 
     /**
-     * Nothing of this lesson's own goes here. An autonomous puts its work in
-     * {@link #routine()}, and the scheduler runs it from inside
-     * {@code loopAfter()}.
+     * An autonomous puts its driving in {@link #routine()}, and the scheduler
+     * runs it from inside {@code loopAfter()}. The one line here is for the
+     * driver's screen, which shows nothing unless a lesson asks it to.
      */
     @Override
     public void loop() {
         loopBefore();
+        Tracker.printPoseSpeedLoopToDs(follower);
         loopAfter();
     }
 
