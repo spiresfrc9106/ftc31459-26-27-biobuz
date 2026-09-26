@@ -67,6 +67,36 @@ public class LessonsTest {
                 values.keySet().stream().anyMatch(k -> k.contains("pressed A")));
     }
 
+    @Test
+    public void l2_theSticksDriveTheWheelsLikeATank() {
+        OpModeHarness h = new OpModeHarness(new L2Sticks());
+        h.init();
+        h.start();
+
+        h.gamepad1.left_stick_y = -1.0f;      // left stick fully forward
+        h.gamepad1.right_stick_y = 0.0f;      // right stick centred
+        h.loop();
+
+        assertEquals("the left stick runs the front left wheel",
+                1.0, h.motors.get(Constants.frontLeftName).power, EPS);
+        assertEquals("and the back left too",
+                1.0, h.motors.get(Constants.backLeftName).power, EPS);
+        assertEquals("the right stick is centred, so the right wheels sit still",
+                0.0, h.motors.get(Constants.frontRightName).power, EPS);
+        assertEquals(0.0, h.motors.get(Constants.backRightName).power, EPS);
+
+        h.gamepad1.right_stick_y = 1.0f;      // right stick fully back
+        h.loop();
+        assertEquals("opposed sticks spin the robot",
+                -1.0, h.motors.get(Constants.frontRightName).power, EPS);
+        assertEquals(1.0, h.motors.get(Constants.frontLeftName).power, EPS);
+
+        h.stop();
+        assertEquals("stopping the OpMode stops the wheels",
+                0.0, h.motors.get(Constants.frontLeftName).power, EPS);
+        assertEquals(0.0, h.motors.get(Constants.frontRightName).power, EPS);
+    }
+
     // -------------------------------------------------------------- L3
 
     @Test
