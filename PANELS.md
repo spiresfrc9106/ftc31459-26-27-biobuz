@@ -84,8 +84,8 @@ Run **TeleOp + Panels** or **Auto: Drive 24in** and you get:
 **Telemetry panel** — one line per value:
 ```
 loop/count: 412
-loop/ms: 4.83
-loop/max_ms: 21.4
+loop/period_ms: 4.83
+loop/max_period_ms: 21.4
 pose/x_in: 6.42
 vel/speed_ips: 18.4
 ...
@@ -96,10 +96,10 @@ them from the list:
 
 | Series | Meaning |
 |---|---|
-| `loop/count` | Loop counter since start() |
-| `loop/ms` | Milliseconds for the last loop |
-| `loop/max_ms` | Slowest loop since start() — catches spikes sampling misses |
-| `loop/hz` | Loop rate |
+| `loop/count` | Loops that have finished. 0 inside the first loop, 1 once it ends |
+| `loop/period_ms` | Milliseconds for the last loop |
+| `loop/max_period_ms` | Slowest loop since start() — catches spikes sampling misses |
+| `loop/rate_hz` | Loop rate |
 | `loop/uptime_s` | Seconds since start() |
 | `pose/x_in`, `pose/y_in` | Position, inches |
 | `pose/heading_deg` | Heading, degrees |
@@ -114,8 +114,10 @@ the OpMode before hunting for it. The picker is a flat list in the order
 series were first sent; the `loop/` `pose/` `vel/` prefixes are just for
 readability.
 
-**The Driver Station** shows only a three-line summary (Pose, Speed, Loop).
-The full set goes to Panels.
+**The Driver Station shows nothing unless an OpMode asks it to.** Space there
+is scarce, so `Tracker` prints only what it is told to print.
+`Tracker.printPoseSpeedLoopToDs(follower)` is the three-line summary — pose,
+speed, loop — and both example OpModes call it. The full set goes to Panels.
 
 **Graphs are sampled, not per-loop.** The robot sends to Panels every 75 ms
 by default and drops the loops in between. With a ~5 ms loop, about 1 loop
@@ -123,10 +125,10 @@ in 15 reaches the graph.
 
 ### Reading the graphs
 
-- `loop/ms` should sit low and flat. Because of sampling, a single slow loop
-  usually won't show here — watch `loop/max_ms` instead. A step up in
-  `loop/max_ms` means some loop blocked: usually a slow sensor read or
-  telemetry doing too much.
+- `loop/period_ms` should sit low and flat. Because of sampling, a single slow
+  loop usually won't show here — watch `loop/max_period_ms` instead. A step up
+  in `loop/max_period_ms` means some loop blocked: usually a slow sensor read or
+  a loop printing too much.
 - `pose/x_in` during the auto should ramp smoothly to 24 and stop.
 - `vel/tangential_ips` should rise, plateau, then decay to zero. A long tail
   near zero means the follower is still correcting at the end of the path.
@@ -163,14 +165,14 @@ draws in the corner with most of the square off the field. That's expected.
 To start the autonomous mid-field, change these in `DriveForward24`:
 
 ```java
-private final Pose startPose = poses.of(72, 72, 0);
-private final Pose endPose   = poses.of(72 + DISTANCE_IN, 72, 0);
+private final Pose start = poses.of(72, 72, 0);
+private final Pose end   = poses.of(72 + DISTANCE_IN, 72, 0);
 ```
 
 and the "Remaining" line to:
 
 ```java
-telemetry.addData("Remaining", "%.1f in", endPose.x() - follower.pose().x());
+Tracker.printToDs("Remaining  %.1f in", end.x() - follower.pose().x());
 ```
 
 The robot still physically drives 24 inches — only the reported numbers
@@ -190,27 +192,28 @@ Panels 1.0 has **no `graph()` method**. The Graph panel parses telemetry
 text: any line containing `name: number` becomes a series. `addData` writes
 exactly that format, so it is both the text call and the graph call.
 
-`PanelsTelemetry` is one shared instance, so any class — an OpMode or a
-subsystem — can add to it, as long as it happens before `log.update(...)`
-in the loop:
+**Publish through `Tracker`.** Every method on it is static, so an OpMode, an
+arm, a flywheel or a localizer all log the same way:
 
 ```java
-import com.bylazar.telemetry.PanelsTelemetry;
-import com.bylazar.telemetry.TelemetryManager;
+import org.firstinspires.ftc.teamcode.base.Tracker;
 
-TelemetryManager panels = PanelsTelemetry.INSTANCE.getTelemetry();
-
-panels.addData("arm/target", target);                        // text AND graph
-panels.addData("arm/position", armMotor.getCurrentPosition());
-panels.addLine("a:1.5 b:2.25");                              // two series, one line
-panels.debug("intake jammed");                               // text only
+Tracker.publish("arm/target", target);                       // Panels AND the .wpilog
+Tracker.publish("arm/position", armMotor.getCurrentPosition());
+Tracker.publish("arm/holding", holding);                     // boolean
+Tracker.publish("arm/target_pose", pose);                    // x_in, y_in, heading_deg
+Tracker.flightlog.recordOutput("arm/samples", raw);          // the file only
+Tracker.printToDs("Arm ready");                              // the driver's screen
 ```
 
-Names can contain anything except a colon. A `debug()` or `addLine()` line
-becomes graphable too if it contains `name: number`.
+Names can contain anything except a colon. `Tracker.enablePanels(false)` stops
+anything reaching Panels; publishing still writes the file and `printToDs`
+still reaches the driver.
 
-`log.update(follower, telemetry)` flushes Panels and the Driver Station once
-per loop. Do not call `telemetry.update()` or `panels.update()` yourself.
+`Tracker.endLoop(follower)` flushes Panels and the Driver Station once per loop,
+from `loopAfter()`. Do not call `telemetry.update()` or `panels.update()`
+yourself — a second flush wipes what the first one sent, and a test fails the
+build if a bare `telemetry` appears anywhere outside `Tracker`.
 
 To sample faster than every 75 ms, call `panels.setUpdateInterval(20);` in
 `start()`. It costs more Wi-Fi traffic.

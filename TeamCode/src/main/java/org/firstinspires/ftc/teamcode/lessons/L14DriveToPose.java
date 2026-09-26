@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
 import org.firstinspires.ftc.teamcode.base.Drive;
+import org.firstinspires.ftc.teamcode.base.Tracker;
 
 /**
  * L14: press Y and the robot drives itself to a pose and stays there.
@@ -66,10 +67,10 @@ public class L14DriveToPose extends CorbelsTeleOp {
      * that is where the follower updates and the flight log is written.
      */
     private void driveTheRobot() {
-        // TODO 2: if drivingItself and the sticks are near zero, log
-        //         data("drive/mode", "AUTO") and return without calling any
-        //         Drive method -- let the follower hold.
-        // TODO 3: if the driver DOES move a stick, set drivingItself = false,
-        //         log data("drive/mode", "DRIVER"), and drive field relative.
+        // TODO 2: if drivingItself and the sticks are near zero, call
+        //         Tracker.publish("drive/mode", "AUTO") and return without calling
+        //         any Drive method -- let the follower hold.
+        // TODO 3: if the driver DOES move a stick, set drivingItself = false, call
+        //         Tracker.publish("drive/mode", "DRIVER"), and drive field relative.
     }
 }

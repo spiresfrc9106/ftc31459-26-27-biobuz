@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.base.odometry.HardwareWheelSource;
  * L8: drive around while two localizers disagree.
  *
  * <p>Panels draws the follower's pose, its aim point and the path on the
- * field. Your localizer arrives as telemetry -- Localizer/encoders/x_in
+ * field. Your localizer is published as Localizer/encoders/x_in
  * and friends -- so graph it next to pose/x_in, then measure the robot
  * with a tape and see which one was right.
  *

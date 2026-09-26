@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
 import org.firstinspires.ftc.teamcode.base.Drive;
 import org.firstinspires.ftc.teamcode.base.HeadingHold;
+import org.firstinspires.ftc.teamcode.base.Tracker;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 /**
@@ -42,7 +43,7 @@ public class L13HeadingHoldTeleOp extends CorbelsTeleOp {
     @Override
     public void loop() {
         loopBefore();
-        // TODO 2: ask heading.turn(follower, gamepad1.right_stick_x) for the
+        // TODO 2: ask heading.turn(follower, -gamepad1.right_stick_x) for the
         //         turn power, then drive field relative with it. Log
         //         heading/holding and heading/deg so Panels can show the hold.
         loopAfter();

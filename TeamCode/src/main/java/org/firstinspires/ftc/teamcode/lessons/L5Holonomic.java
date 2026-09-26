@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.lessons;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
+import org.firstinspires.ftc.teamcode.base.Tracker;
 
 /**
  * L5: holonomic drive. Now the robot can strafe.
@@ -45,10 +46,10 @@ public class L5Holonomic extends CorbelsTeleOp {
         // TODO: three numbers now, not two. left comes from the left stick's x
         //       axis; LEFT is positive and the stick reads positive to the RIGHT,
         //       so that one needs negating too. Log all three.
-        double forward = 0;
-        double left = 0;
-        double turn = 0;
-        holonomic.sticks(forward, left, turn);
+        double forwardSpeed = 0;
+        double strafeLeftSpeed = 0;
+        double turnCcwSpeed = 0;
+        holonomic.sticks(forwardSpeed, strafeLeftSpeed, turnCcwSpeed);
 
         loopAfter();
     }

@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.base.CorbelsMecanum;
 import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
 import org.firstinspires.ftc.teamcode.base.SysIdRecorder;
+import org.firstinspires.ftc.teamcode.base.Tracker;
 import org.firstinspires.ftc.teamcode.base.WheelVelocities;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
@@ -61,7 +62,7 @@ public class SysIdDrive extends CorbelsTeleOp {
     @Override
     public void start() {
         startBefore();
-        recorder = new SysIdRecorder(flight, "drive");
+        recorder = new SysIdRecorder(Tracker.flightlog, "drive");
         wheels = new WheelVelocities(hardware);
         startTicks = ticks();
         startAfter();
@@ -113,16 +114,16 @@ public class SysIdDrive extends CorbelsTeleOp {
             }
         }
 
-        data("sysid/running", running);
-        data("sysid/test", selected.toString());
-        data("sysid/volts_commanded", volts);
-        data("sysid/power", power);
-        data("sysid/battery_volts", battery);
+        Tracker.publish("sysid/running", running);
+        Tracker.publish("sysid/test", selected.toString());
+        Tracker.publish("sysid/volts_commanded", volts);
+        Tracker.publish("sysid/power", power);
+        Tracker.publish("sysid/battery_volts", battery);
 
-        telemetry.addData("Test", "%s   %s", selected, running ? "RUNNING" : "ready");
-        telemetry.addLine("D-pad picks the test. Hold the right trigger to run it.");
-        telemetry.addData("Volts", "%.2f of %.1f available", volts, battery);
-        telemetry.addLine("Up: quasi fwd   Down: quasi rev   Right: dyn fwd   Left: dyn rev");
+        Tracker.printToDs("Test  %s   %s", selected, running ? "RUNNING" : "ready");
+        Tracker.printToDs("D-pad picks the test. Hold the right trigger to run it.");
+        Tracker.printToDs("Volts  %.2f of %.1f available", volts, battery);
+        Tracker.printToDs("Up: quasi fwd   Down: quasi rev   Right: dyn fwd   Left: dyn rev");
 
         loopAfter();
     }

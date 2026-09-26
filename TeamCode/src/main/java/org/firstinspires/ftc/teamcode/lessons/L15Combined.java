@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
 import org.firstinspires.ftc.teamcode.base.Drive;
 import org.firstinspires.ftc.teamcode.base.HeadingHold;
+import org.firstinspires.ftc.teamcode.base.Tracker;
 import org.firstinspires.ftc.teamcode.base.odometry.HardwareWheelSource;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
@@ -95,32 +96,32 @@ public class L15Combined extends CorbelsTeleOp {
      * that is where the follower updates and the flight log is written.
      */
     private void driveTheRobot() {
-        double forward = Drive.squared(Drive.deadband(-gamepad1.left_stick_y, 0.05));
-        double left = Drive.squared(Drive.deadband(-gamepad1.left_stick_x, 0.05));
-        double stick = Drive.deadband(gamepad1.right_stick_x, 0.05);
-        boolean driverWantsControl = forward != 0 || left != 0 || stick != 0;
+        double forwardSpeed = Drive.squared(Drive.deadband(-gamepad1.left_stick_y, 0.05));
+        double strafeLeftSpeed = Drive.squared(Drive.deadband(-gamepad1.left_stick_x, 0.05));
+        double turnStick = Drive.deadband(-gamepad1.right_stick_x, 0.05);
+        boolean driverWantsControl = forwardSpeed != 0 || strafeLeftSpeed != 0 || turnStick != 0;
 
         if (drivingItself) {
             if (!driverWantsControl) {
-                data("drive/mode", "AUTO");
-                data("drive/target_deg", Math.toDegrees(TARGET_POSE.heading()));
+                Tracker.publish("drive/mode", "AUTO");
+                Tracker.publish("drive/target_deg", Math.toDegrees(TARGET_POSE.heading()));
                 return;
             }
             drivingItself = false;      // a stick moved: the driver has it back
             heading.release();
         }
 
-        double turn = heading.turn(follower, stick);
+        double turnCcwSpeed = heading.turn(follower, turnStick);
         Double held = heading.target();
-        data("drive/aiming", held != null);
-        if (held != null) data("drive/target_deg", Math.toDegrees(held));
+        Tracker.publish("drive/aiming", held != null);
+        if (held != null) Tracker.publish("drive/target_deg", Math.toDegrees(held));
 
         if (gamepad1.right_bumper) {
-            data("drive/mode", "ROBOT");
-            Drive.holonomic(follower, forward, left, turn);
+            Tracker.publish("drive/mode", "ROBOT");
+            Drive.holonomic(follower, forwardSpeed, strafeLeftSpeed, turnCcwSpeed);
         } else {
-            data("drive/mode", "FIELD");
-            Drive.fieldRelative(follower, forward, left, turn);
+            Tracker.publish("drive/mode", "FIELD");
+            Drive.fieldRelative(follower, forwardSpeed, strafeLeftSpeed, turnCcwSpeed);
         }
     }
 }

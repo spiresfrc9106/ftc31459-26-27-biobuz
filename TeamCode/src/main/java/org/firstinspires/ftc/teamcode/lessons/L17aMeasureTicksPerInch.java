@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.base.Calibration;
 import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
+import org.firstinspires.ftc.teamcode.base.Tracker;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 /**
@@ -78,20 +79,20 @@ public class L17aMeasureTicksPerInch extends CorbelsTeleOp {
         inches = Math.hypot(dx, dy);
 
         double measured = Calibration.ticksPerInch(ticks, inches);
-        data("measure/inches", inches);
-        data("measure/ticks", ticks);
-        data("measure/ticksPerInch", measured);
+        Tracker.publish("measure/inches", inches);
+        Tracker.publish("measure/ticks", ticks);
+        Tracker.publish("measure/ticksPerInch", measured);
 
-        telemetry.addData("Push the robot forward", "%.1f of %.0f inches", inches, NEEDED_INCHES);
-        telemetry.addData("Encoders counted", "%.0f ticks", ticks);
+        Tracker.printToDs("Push the robot forward  %.1f of %.0f inches", inches, NEEDED_INCHES);
+        Tracker.printToDs("Encoders counted  %.0f ticks", ticks);
         if (inches >= NEEDED_INCHES) {
-            telemetry.addLine();
-            telemetry.addData("ticksPerInch", "%.2f", measured);
-            telemetry.addLine("Put that in Constants.ticksPerInch, then run it again to check.");
+            Tracker.printToDs();
+            Tracker.printToDs("ticksPerInch  %.2f", measured);
+            Tracker.printToDs("Put that in Constants.ticksPerInch, then run it again to check.");
         } else {
-            telemetry.addData("Currently", "%.2f ticks per inch", measured);
+            Tracker.printToDs("Currently  %.2f ticks per inch", measured);
         }
-        telemetry.addData("Configured now", "%.2f", Constants.ticksPerInch);
+        Tracker.printToDs("Configured now  %.2f", Constants.ticksPerInch);
 
         loopAfter();
     }

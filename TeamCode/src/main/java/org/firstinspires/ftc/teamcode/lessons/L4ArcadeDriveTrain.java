@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.lessons;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
+import org.firstinspires.ftc.teamcode.base.CorbelsDriveTrain;
 import org.firstinspires.ftc.teamcode.base.RobotHardware;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
@@ -45,25 +46,27 @@ public class L4ArcadeDriveTrain {
     }
 
     /**
-     * Arcade drive. {@code forward} is how fast to drive, {@code turn} is how
-     * fast to spin counter-clockwise. Both are -1 to 1.
+     * Arcade drive. {@code forwardSpeed} is how fast to drive,
+     * {@code turnCcwSpeed} is how fast to spin counter-clockwise, in the
+     * directions {@link CorbelsDriveTrain} sets out. Both are -1 to 1.
      *
      * <p>Full forward and full turn together want more than a motor can give, so
      * the four powers are scaled down together. Scaling them together keeps the
      * robot going where the driver asked; clipping each one on its own would not.
      */
-    public void sticks(double forward, double turn) {
+    public void sticks(double forwardSpeed, double turnCcwSpeed) {
         // TODO 1: work out what each side has to do. A counter-clockwise turn
         //         runs the left side backwards, so turn is subtracted there and
         //         added on the right.
-        double left = 0;
-        double right = 0;
+        double leftSpeed = 0;
+        double rightSpeed = 0;
 
         // TODO 2: if either one is bigger than 1, divide BOTH by the bigger of
         //         the two, so the robot still goes where the driver asked.
-        //         Math.max(1.0, Math.max(Math.abs(left), Math.abs(right)))
+        //         Math.max(1.0, Math.max(Math.abs(leftSpeed), Math.abs(rightSpeed)))
         //         is the number to divide by.
 
-        // TODO 3: send left to both left motors and right to both right motors.
+        // TODO 3: send leftSpeed to both left motors and rightSpeed to both right
+        //         motors.
     }
 }

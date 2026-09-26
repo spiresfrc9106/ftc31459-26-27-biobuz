@@ -17,8 +17,9 @@ import com.pedropathing.math.Vector2D;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -153,21 +154,69 @@ public final class SimRobot {
     }
 
     /**
-     * A Driver Station {@link Telemetry} that records {@code addData} captions
-     * and values. A dynamic proxy rather than a class, so SDK versions that
-     * add methods to the interface don't break the tests.
+     * What the Driver Station shows, and how it loses what it is not shown.
+     *
+     * <p>FTC's {@code Telemetry} defaults to {@code setAutoClear(true)}, so
+     * {@code update()} transmits the buffer and empties it. A second
+     * {@code update()} in the same loop therefore transmits nothing and throws
+     * away what the first one sent, which is why {@code Tracker} owns the only
+     * flush. This fake behaves the same way, so a test can watch it happen.
      */
-    public static Telemetry telemetry(Map<String, String> captured) {
+    public static final class DriverStation {
+        private final List<String> pending = new ArrayList<>();
+        private List<String> shown = new ArrayList<>();
+
+        void add(String line) {
+            pending.add(line);
+        }
+
+        void transmit() {
+            shown = new ArrayList<>(pending);
+            pending.clear();
+        }
+
+        void clearPending() {
+            pending.clear();
+        }
+
+        /** The lines the driver can see now, from the last transmission. */
+        public List<String> lines() {
+            return shown;
+        }
+
+        /** Those lines as one string, for a readable assertion. */
+        public String text() {
+            return String.join("\n", shown);
+        }
+
+        public boolean shows(String fragment) {
+            return text().contains(fragment);
+        }
+    }
+
+    /**
+     * A Driver Station {@link Telemetry} writing into a {@link DriverStation}.
+     * A dynamic proxy rather than a class, so SDK versions that add methods to
+     * the interface don't break the tests.
+     */
+    public static Telemetry telemetry(DriverStation ds) {
         return (Telemetry) Proxy.newProxyInstance(Telemetry.class.getClassLoader(),
                 new Class<?>[]{Telemetry.class}, (proxy, method, args) -> {
-                    if (method.getName().equals("addData") && args != null && args.length >= 2) {
+                    String name = method.getName();
+                    if (name.equals("addLine")) {
+                        ds.add(args == null || args.length == 0 ? "" : String.valueOf(args[0]));
+                    } else if (name.equals("addData") && args != null && args.length >= 2) {
                         String value;
                         if (args.length == 3 && args[1] instanceof String) {
                             value = String.format((String) args[1], (Object[]) args[2]);
                         } else {
                             value = String.valueOf(args[1]);
                         }
-                        captured.put(String.valueOf(args[0]), value);
+                        ds.add(args[0] + ": " + value);
+                    } else if (name.equals("update")) {
+                        ds.transmit();
+                    } else if (name.equals("clear") || name.equals("clearAll")) {
+                        ds.clearPending();
                     }
                     Class<?> r = method.getReturnType();
                     if (r == boolean.class) return true;
@@ -179,7 +228,4 @@ public final class SimRobot {
                 });
     }
 
-    public static Map<String, String> newCapture() {
-        return new LinkedHashMap<>();
-    }
 }

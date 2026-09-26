@@ -51,13 +51,15 @@ public class BaseTest {
 
     @Test
     public void tankTurnsInPlaceWhenSticksOppose() {
+        // Left side ahead of right swings the nose to the right, which is
+        // clockwise, which is a negative turn.
         Drive.tank(follower, 1.0, -1.0);
         follower.update();   // manual() only stores the powers; update() applies them
         assertEquals(0.0, forward(), EPS);
-        assertEquals(1.0, turn(), EPS);
+        assertEquals(-1.0, turn(), EPS);
         Drive.tank(follower, -1.0, 1.0);
         follower.update();   // manual() only stores the powers; update() applies them
-        assertEquals(-1.0, turn(), EPS);
+        assertEquals(1.0, turn(), EPS);
     }
 
     @Test
@@ -65,7 +67,8 @@ public class BaseTest {
         Drive.tank(follower, 1.0, 0.5);
         follower.update();   // manual() only stores the powers; update() applies them
         assertEquals(0.75, forward(), EPS);
-        assertEquals(0.25, turn(), EPS);
+        assertEquals("the faster left side curves the robot to the right",
+                -0.25, turn(), EPS);
     }
 
     @Test

@@ -7,9 +7,9 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.ArrayDeque;
+import org.firstinspires.ftc.teamcode.base.Tracker;
 
 /**
  * Shared Panels logging for the Corbels OpModes.
@@ -31,11 +31,11 @@ import java.util.ArrayDeque;
  * {@code panels.setUpdateInterval(ms)} lowers the interval at the cost of
  * more Wi-Fi traffic.
  *
- * <p><b>Output split.</b> Panels gets every series; the Driver Station gets a
- * three-line summary. ({@code TelemetryManager.update(telemetry)} would copy
- * every Panels line to the DS, which crowds its screen.) {@link #update}
- * flushes both, so OpModes using this class should not call
- * {@code telemetry.update()} themselves.
+ * <p><b>Panels only.</b> Everything here goes to Panels and nowhere else.
+ * ({@code TelemetryManager.update(telemetry)} would copy every Panels line to
+ * the Driver Station, which crowds its screen.) The Driver Station belongs to
+ * {@link Tracker#printToDs}, which also owns the loop count and the loop
+ * timing.
  *
  * <p><b>Field view.</b> Draws on the Panels Field panel, in this order:
  * <ol>
@@ -81,54 +81,26 @@ public class PanelsLogger {
 
     private final ArrayDeque<double[]> trail = new ArrayDeque<>();
 
-    private long loops;
-    private long lastNs;
-    private long startNs;
-    private double loopMs;
-    private double maxLoopMs;
-
     /** Latest line Pedro pushed through its own logger, if wired up. */
     private String pedroLog = "";
 
     /** Call once from start(), so init-loop time is not counted. */
     public void start() {
-        loops = 0;
-        maxLoopMs = 0.0;
-        loopMs = 0.0;
-        lastNs = System.nanoTime();
-        startNs = lastNs;
         lastFieldDrawNs = 0L;
         trail.clear();
     }
 
     /**
-     * Sink for Pedro's own follower log. Wire with:
-     * {@code Constants.create(hardwareMap).withLogger(log -> panelsLogger.pedro(log.toString()))}
+     * Sink for Pedro's own follower log. {@code CorbelsOpMode} wires it as
+     * {@code follower.withLogger(followerLog -> Tracker.logger.pedro(followerLog.toString()))}
      */
     public void pedro(String line) {
         pedroLog = line;
     }
 
     /** Call once per loop, after follower.update(). */
-    public void update(Follower follower, Telemetry driverStation) {
-        // ---- loop counter and loop duration ----
+    public void update(Follower follower) {
         long now = System.nanoTime();
-        if (lastNs != 0L) {
-            loopMs = (now - lastNs) / 1_000_000.0;
-        }
-        lastNs = now;
-        loops++;
-        if (loopMs > maxLoopMs) {
-            maxLoopMs = loopMs;
-        }
-        double hz = loopMs > 0.0 ? 1000.0 / loopMs : 0.0;
-        double upSec = (now - startNs) / 1_000_000_000.0;
-
-        panels.addData("loop/count", loops);
-        panels.addData("loop/ms", loopMs);
-        panels.addData("loop/max_ms", maxLoopMs);
-        panels.addData("loop/hz", hz);
-        panels.addData("loop/uptime_s", upSec);
 
         if (follower != null) {
             // ---- robot position ----
@@ -151,8 +123,8 @@ public class PanelsLogger {
             double vx = follower.velocity().vx;
             double vy = follower.velocity().vy;
             double omega = follower.velocity().omega;
-            double forward = follower.twist().vx;
-            double strafe = follower.twist().vy;
+            double forwardSpeedInPerS = follower.twist().vx;
+            double strafeLeftSpeedInPerS = follower.twist().vy;
             // tangentialVelocity() is velocity . closestTangent(), and Pedro only
             // computes closestTangent while following or holding. In MANUAL it is
             // null until a path has run, and tangentialVelocity() throws a
@@ -167,14 +139,11 @@ public class PanelsLogger {
             panels.addData("vel/vy_ips", vy);
             panels.addData("vel/speed_ips", speed);
             panels.addData("vel/omega_radps", omega);
-            panels.addData("vel/forward_ips", forward);
-            panels.addData("vel/strafe_ips", strafe);
+            panels.addData("vel/forward_ips", forwardSpeedInPerS);
+            panels.addData("vel/strafe_ips", strafeLeftSpeedInPerS);
             panels.addData("vel/tangential_ips", tangential);
 
             drawField(follower, x, y, follower.pose().heading(), now);
-
-            driverStation.addData("Pose", "x %.1f  y %.1f  h %.0f", x, y, headingDeg);
-            driverStation.addData("Speed", "%.1f in/s", speed);
         }
 
         if (!pedroLog.isEmpty()) {
@@ -183,10 +152,7 @@ public class PanelsLogger {
             panels.debug("pedro  " + pedroLog);
         }
 
-        driverStation.addData("Loop", "#%d  %.1f ms (max %.1f)", loops, loopMs, maxLoopMs);
-
-        panels.update();         // Panels: every series above (throttled to 75 ms)
-        driverStation.update();  // Driver Station: summary lines only
+        panels.update();   // every series above, throttled to 75 ms
     }
 
     /** True while Pedro is following a path or holding a pose -- the only
@@ -292,17 +258,5 @@ public class PanelsLogger {
     private void segment(double x1, double y1, double x2, double y2) {
         field.moveCursor(x1, y1);
         field.line(x2, y2);
-    }
-
-    public long loops() {
-        return loops;
-    }
-
-    public double lastLoopMs() {
-        return loopMs;
-    }
-
-    public double maxLoopMs() {
-        return maxLoopMs;
     }
 }

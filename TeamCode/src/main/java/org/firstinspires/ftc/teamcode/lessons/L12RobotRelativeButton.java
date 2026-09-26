@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
 import org.firstinspires.ftc.teamcode.base.Drive;
+import org.firstinspires.ftc.teamcode.base.Tracker;
 
 /**
  * L12: field relative normally, robot relative while the right bumper is held
@@ -40,7 +41,7 @@ public class L12RobotRelativeButton extends CorbelsTeleOp {
         // TODO: if gamepad1.right_bumper is held, drive robot relative
         //       (Drive.holonomic); otherwise field relative.
         //       Held, not toggled -- ask a driver why.
-        //       Log it too: data("drive/robotRelative", gamepad1.right_bumper);
+        //       Log it too: Tracker.publish("drive/robotRelative", gamepad1.right_bumper);
         loopAfter();
     }
 }

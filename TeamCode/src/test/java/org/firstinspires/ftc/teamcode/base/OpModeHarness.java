@@ -23,8 +23,8 @@ import java.util.Map;
 
 /**
  * Runs a real OpMode on a laptop: simulated drivetrain, fake motors and a
- * fake IMU. Panels telemetry is captured through the OpMode's data(...)
- * values rather than read back from a file.
+ * fake IMU. What a lesson publishes is read back from {@link Tracker#values},
+ * and what it prints from {@link #driverStation}, rather than from a file.
  */
 public final class OpModeHarness {
 
@@ -103,7 +103,7 @@ public final class OpModeHarness {
     public final SimRobot robot = new SimRobot();
     public final Gamepad gamepad1 = new Gamepad();
     public final Gamepad gamepad2 = new Gamepad();
-    public final Map<String, String> driverStation = SimRobot.newCapture();
+    public final SimRobot.DriverStation driverStation = new SimRobot.DriverStation();
     public final Map<String, FakeMotor> motors = new HashMap<>();
     public final FakeImu imu = new FakeImu();
 

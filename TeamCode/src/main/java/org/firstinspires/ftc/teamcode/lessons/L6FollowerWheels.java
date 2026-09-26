@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.lessons;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
+import org.firstinspires.ftc.teamcode.base.Tracker;
 
 /**
  * L6: hand the wheels to the path follower.
@@ -48,14 +49,14 @@ public class L6FollowerWheels extends CorbelsTeleOp {
     public void loop() {
         loopBefore();
 
-        double forward = -gamepad1.left_stick_y;
-        double left = -gamepad1.left_stick_x;
-        double turn = -gamepad1.right_stick_x;
-        follower.manual(forward, left, turn);
+        double forwardSpeed = -gamepad1.left_stick_y;
+        double strafeLeftSpeed = -gamepad1.left_stick_x;
+        double turnCcwSpeed = -gamepad1.right_stick_x;
+        follower.manual(forwardSpeed, strafeLeftSpeed, turnCcwSpeed);
 
-        data("command/forward", forward);
-        data("command/left", left);
-        data("command/turn_ccw", turn);
+        Tracker.publish("command/forward", forwardSpeed);
+        Tracker.publish("command/left", strafeLeftSpeed);
+        Tracker.publish("command/turn_ccw", turnCcwSpeed);
 
         loopAfter();
     }

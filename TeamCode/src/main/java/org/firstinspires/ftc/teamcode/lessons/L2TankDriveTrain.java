@@ -56,9 +56,9 @@ public class L2TankDriveTrain {
      * and one back and it spins. That is the whole idea, and it lives here in
      * one place so every lesson that drives this way says the same thing.
      */
-    public void sticks(double left, double right) {
-        // TODO: send the left number to both left motors and the right number to
-        //       both right motors. Four lines, one per wheel:
-        //       frontLeft.setPower(left);
+    public void sticks(double leftSpeed, double rightSpeed) {
+        // TODO: send leftSpeed to both left motors and rightSpeed to both right
+        //       motors. Four lines, one per wheel:
+        //       frontLeft.setPower(leftSpeed);
     }
 }

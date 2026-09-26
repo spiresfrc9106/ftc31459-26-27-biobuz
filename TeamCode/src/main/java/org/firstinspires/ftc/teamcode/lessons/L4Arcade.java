@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.lessons;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
+import org.firstinspires.ftc.teamcode.base.Tracker;
 
 /**
  * L4: arcade drive. One stick drives, the other turns. Still no strafing.
@@ -41,14 +42,14 @@ public class L4Arcade extends CorbelsTeleOp {
     public void loop() {
         loopBefore();
 
-        // TODO: read the two sticks and hand them to arcade.sticks(forward, turn).
+        // TODO: read the two sticks and hand them to arcade.sticks(forwardSpeed, turnCcwSpeed).
         //       forward comes from the left stick's y axis, turn from the right
         //       stick's x axis, and BOTH need a minus sign -- the note above says
         //       why the turn one does. Log them as command/forward and
         //       command/turn_ccw so Panels can draw them.
-        double forward = 0;
-        double turn = 0;
-        arcade.sticks(forward, turn);
+        double forwardSpeed = 0;
+        double turnCcwSpeed = 0;
+        arcade.sticks(forwardSpeed, turnCcwSpeed);
 
         loopAfter();
     }

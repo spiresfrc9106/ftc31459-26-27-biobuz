@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
 import org.firstinspires.ftc.teamcode.base.Drive;
+import org.firstinspires.ftc.teamcode.base.Tracker;
 import org.firstinspires.ftc.teamcode.base.WheelTargets;
 import org.firstinspires.ftc.teamcode.base.WheelVelocities;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
@@ -87,12 +88,12 @@ public class L16VelocityDrive extends CorbelsTeleOp {
         //         MAX_IPS inches per second; full turn, MAX_TURN_RADPS radians per
         //         second. Use Drive.deadband(value, 0.05) as usual, and remember
         //         the minus signs from lesson 5.
-        double forwardIps = 0;
-        double leftIps = 0;
-        double turnRadps = 0;
+        double forwardSpeedInPerS = 0;
+        double strafeLeftSpeedInPerS = 0;
+        double turnCcwSpeedRadPerS = 0;
 
         // TODO 2: work out how fast each wheel has to travel for the robot to move
-        //         like that. WheelTargets.forMecanum(forward, left, turn, radius)
+        //         like that. WheelTargets.forMecanum(forward, strafeLeft, turnCcw, radius)
         //         does the arithmetic; the radius is Constants.turnRadiusInches.
         double[] target = new double[4];
 
@@ -108,14 +109,14 @@ public class L16VelocityDrive extends CorbelsTeleOp {
 
         String[] names = {"frontLeft", "frontRight", "backLeft", "backRight"};
         for (int i = 0; i < 4; i++) {
-            data("wheel/" + names[i] + "/target_ips", target[i]);
-            data("wheel/" + names[i] + "/actual_ips", actual[i]);
-            data("wheel/" + names[i] + "/error_ips", target[i] - actual[i]);
-            data("wheel/" + names[i] + "/power", power[i]);
+            Tracker.publish("wheel/" + names[i] + "/target_ips", target[i]);
+            Tracker.publish("wheel/" + names[i] + "/actual_ips", actual[i]);
+            Tracker.publish("wheel/" + names[i] + "/error_ips", target[i] - actual[i]);
+            Tracker.publish("wheel/" + names[i] + "/power", power[i]);
         }
-        data("command/forward_ips", forwardIps);
-        data("command/left_ips", leftIps);
-        data("command/turn_radps", turnRadps);
+        Tracker.publish("command/forward_ips", forwardSpeedInPerS);
+        Tracker.publish("command/left_ips", strafeLeftSpeedInPerS);
+        Tracker.publish("command/turn_radps", turnCcwSpeedRadPerS);
 
         loopAfter();
     }

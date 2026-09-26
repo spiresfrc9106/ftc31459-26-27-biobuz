@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
 import org.firstinspires.ftc.teamcode.base.Drive;
+import org.firstinspires.ftc.teamcode.base.Tracker;
 
 /**
  * L3: make the sticks feel good.
@@ -51,20 +52,20 @@ public class L3SmoothSticks extends CorbelsTeleOp {
     public void loop() {
         loopBefore();
 
-        double leftRaw = -gamepad1.left_stick_y;
-        double rightRaw = -gamepad1.right_stick_y;
+        double leftRawSpeed = -gamepad1.left_stick_y;
+        double rightRawSpeed = -gamepad1.right_stick_y;
 
         // TODO: shape each stick before it reaches the wheels. Drive.deadband
         //       throws away anything smaller than DEADBAND, and Drive.squared
         //       squares it while keeping its sign. Deadband first, then square.
-        double left = 0;
-        double right = 0;
-        tank.sticks(left, right);
+        double leftSpeed = 0;
+        double rightSpeed = 0;
+        tank.sticks(leftSpeed, rightSpeed);
 
-        data("stick/left_raw", leftRaw);
-        data("stick/left_shaped", left);
-        data("stick/right_raw", rightRaw);
-        data("stick/right_shaped", right);
+        Tracker.publish("stick/left_raw", leftRawSpeed);
+        Tracker.publish("stick/left_shaped", leftSpeed);
+        Tracker.publish("stick/right_raw", rightRawSpeed);
+        Tracker.publish("stick/right_shaped", rightSpeed);
 
         loopAfter();
     }

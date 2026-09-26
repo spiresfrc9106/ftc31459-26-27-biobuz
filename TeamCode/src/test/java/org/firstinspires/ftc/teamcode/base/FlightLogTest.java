@@ -26,10 +26,10 @@ public class FlightLogTest {
         @Override
         public void loop() {
             loopBefore();
-            data("number", 1.5);
-            data("flag", true);
-            data("text", "hello");
-            data("Robot/Pose", POSES.of(24, 48, 90));
+            Tracker.publish("number", 1.5);
+            Tracker.publish("flag", true);
+            Tracker.publish("text", "hello");
+            Tracker.publish("Robot/Pose", POSES.of(24, 48, 90));
             loopAfter();
         }
     }
@@ -45,7 +45,7 @@ public class FlightLogTest {
     }
 
     @Test
-    public void aTeleopRunWritesOneFlightLog() {
+    public void aTeleOpRunWritesOneFlightLog() {
         OpModeHarness h = new OpModeHarness(new SampleTeleOp());
         assertEquals("nothing before init", 0, h.logs().length);
         h.init();
@@ -53,12 +53,11 @@ public class FlightLogTest {
 
         h.start();
         assertEquals("and still just the one", 1, h.logs().length);
-        SampleTeleOp opMode = (SampleTeleOp) h.opMode();
-        assertTrue(opMode.flight.status(), opMode.flight.isRecording());
+        assertTrue(Tracker.flightlog.status(), Tracker.flightlog.isRecording());
 
         h.loops(5, 0);
         h.stop();
-        assertFalse("closed when the OpMode ends", opMode.flight.isRecording());
+        assertFalse("closed when the OpMode ends", Tracker.flightlog.isRecording());
         assertTrue("and has something in it", h.logs()[0].length() > 0);
     }
 
@@ -70,7 +69,7 @@ public class FlightLogTest {
         h.loops(3, 0);
         h.stop();
         assertEquals(1, h.logs().length);
-        assertFalse(((SampleAuto) h.opMode()).flight.isRecording());
+        assertFalse(Tracker.flightlog.isRecording());
     }
 
     @Test
@@ -79,13 +78,12 @@ public class FlightLogTest {
         h.init();
         h.start();
         h.loop();
-        SampleTeleOp opMode = (SampleTeleOp) h.opMode();
 
         // Panels, as before.
-        assertEquals(1.5, (Double) opMode.values().get("number"), 1e-9);
-        assertEquals(true, opMode.values().get("flag"));
-        assertEquals("hello", opMode.values().get("text"));
-        assertEquals(24.0, (Double) opMode.values().get("Robot/Pose/x_in"), 1e-9);
+        assertEquals(1.5, (Double) Tracker.values().get("number"), 1e-9);
+        assertEquals(true, Tracker.values().get("flag"));
+        assertEquals("hello", Tracker.values().get("text"));
+        assertEquals(24.0, (Double) Tracker.values().get("Robot/Pose/x_in"), 1e-9);
 
         h.stop();
 
@@ -98,9 +96,8 @@ public class FlightLogTest {
     public void somethingLoggedDuringInitIsKept() {
         OpModeHarness h = new OpModeHarness(new InitLogging());
         h.init();
-        InitLogging opMode = (InitLogging) h.opMode();
         assertEquals("init values reach the file before Panels exists",
-                7.5, (Double) opMode.values().get("setup/value"), 1e-9);
+                7.5, (Double) Tracker.values().get("setup/value"), 1e-9);
         h.start();
         h.stop();
         assertTrue(h.logs()[0].length() > 0);
@@ -108,7 +105,7 @@ public class FlightLogTest {
 
     /** Logs during init, when Panels does not exist yet. */
     public static class InitLogging extends CorbelsTeleOp {
-        @Override protected void onInit() { data("setup/value", 7.5); }
+        @Override protected void onInit() { Tracker.publish("setup/value", 7.5); }
         @Override public void init() { initBefore(); initAfter(); }
         @Override public void loop() { loopBefore(); loopAfter(); }
     }
