@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
 import org.firstinspires.ftc.teamcode.base.Drive;
+import org.firstinspires.ftc.teamcode.base.odometry.HardwareWheelSource;
 
 /**
  * L8: drive around while two localizers disagree.
@@ -25,8 +26,31 @@ public class L8CompareLocalizers extends CorbelsTeleOp {
         //                 new MecanumEncoderLocalizer(new HardwareWheelSource(hardware)));
     }
 
+    private LessonDriveTrain wheels;
+
     @Override
-    protected void drive() {
-        // TODO 2: holonomic driving, same as lesson 5.
+    public void init() {
+        initBefore();
+        wheels = new LessonDriveTrain(hardware);
+        initAfter(wheels);
+    }
+
+    @Override
+    public void start() {
+        startBefore();
+        startAfter();
+    }
+
+    @Override
+    public void loop() {
+        loopBefore();
+        // TODO 2: holonomic driving, same as lesson 5 -- but through the
+        //         follower now, the way lesson 6 handed the wheels over.
+        loopAfter();
+    }
+
+    @Override
+    public void stop() {
+        stopAfter();
     }
 }

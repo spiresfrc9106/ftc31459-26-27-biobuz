@@ -36,17 +36,37 @@ public class L17bMeasureTurnRadius extends CorbelsTeleOp {
     private double previousHeading;
     private double radians, wheelInches;
 
+    private LessonDriveTrain wheels;
+
     @Override
-    protected void bindings() {
+    public void init() {
+        initBefore();
+        wheels = new LessonDriveTrain(hardware);
+        initAfter(wheels);
+    }
+
+    @Override
+    public void start() {
+        startBefore();
         savedBrakeMode = Constants.manualBrakeMode;
         Constants.manualBrakeMode = false;
         startTicks = ticks();
         previousHeading = follower.pose().heading();
+        startAfter();
     }
 
     @Override
-    protected void drive() {
-        drivetrain.driveWheels(0, 0, 0, 0);
+    public void stop() {
+        // Hand the wheels back before the follower's last update, or they keep
+        // whatever power the last loop commanded.
+        wheels.releaseCommandedWheels();
+        stopAfter();
+    }
+
+    @Override
+    public void loop() {
+        loopBefore();
+        wheels.setCommandedWheels(0, 0, 0, 0);
 
         double heading = follower.pose().heading();
         radians += Calibration.unwrap(previousHeading, heading);
@@ -73,6 +93,8 @@ public class L17bMeasureTurnRadius extends CorbelsTeleOp {
             telemetry.addData("Currently", "%.2f inches", measured);
         }
         telemetry.addData("ticksPerInch in use", "%.2f", Constants.ticksPerInch);
+
+        loopAfter();
     }
 
     private double[] ticks() {

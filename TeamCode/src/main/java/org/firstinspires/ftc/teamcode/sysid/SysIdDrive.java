@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.sysid;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.base.CorbelsMecanum;
 import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
 import org.firstinspires.ftc.teamcode.base.SysIdRecorder;
 import org.firstinspires.ftc.teamcode.base.WheelVelocities;
@@ -41,6 +42,7 @@ public class SysIdDrive extends CorbelsTeleOp {
 
     private static final String[] MOTOR_NAMES = {"frontLeft", "frontRight", "backLeft", "backRight"};
 
+    private CorbelsMecanum drivetrain;
     private SysIdRecorder recorder;
     private WheelVelocities wheels;
 
@@ -50,14 +52,30 @@ public class SysIdDrive extends CorbelsTeleOp {
     private double[] startTicks;
 
     @Override
-    protected void bindings() {
-        recorder = new SysIdRecorder(flight, "drive");
-        wheels = new WheelVelocities(hardware);
-        startTicks = ticks();
+    public void init() {
+        initBefore();
+        drivetrain = new CorbelsMecanum(hardware);
+        initAfter(drivetrain);
     }
 
     @Override
-    protected void drive() {
+    public void start() {
+        startBefore();
+        recorder = new SysIdRecorder(flight, "drive");
+        wheels = new WheelVelocities(hardware);
+        startTicks = ticks();
+        startAfter();
+    }
+
+    @Override
+    public void stop() {
+        drivetrain.releaseCommandedWheels();
+        stopAfter();
+    }
+
+    @Override
+    public void loop() {
+        loopBefore();
         if (!running) {
             if (gamepad1.dpad_up) selected = SysIdRecorder.State.QUASISTATIC_FORWARD;
             if (gamepad1.dpad_down) selected = SysIdRecorder.State.QUASISTATIC_REVERSE;
@@ -83,7 +101,7 @@ public class SysIdDrive extends CorbelsTeleOp {
 
         double battery = hardware.batteryVolts();
         double power = battery > 1 ? clamp(volts / battery) : 0;
-        drivetrain.driveWheels(power, power, power, power);
+        drivetrain.setCommandedWheels(power, power, power, power);
 
         if (running) {
             recorder.state(selected);
@@ -105,6 +123,8 @@ public class SysIdDrive extends CorbelsTeleOp {
         telemetry.addLine("D-pad picks the test. Hold the right trigger to run it.");
         telemetry.addData("Volts", "%.2f of %.1f available", volts, battery);
         telemetry.addLine("Up: quasi fwd   Down: quasi rev   Right: dyn fwd   Left: dyn rev");
+
+        loopAfter();
     }
 
     /** What the voltage should be, this far into the given test. */
@@ -136,6 +156,6 @@ public class SysIdDrive extends CorbelsTeleOp {
 
     @Override
     protected void afterLoop() {
-        if (!running) drivetrain.driveWheels(0, 0, 0, 0);
+        if (!running) drivetrain.setCommandedWheels(0, 0, 0, 0);
     }
 }

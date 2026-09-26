@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.sysid;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.base.CorbelsMecanum;
 import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
 import org.firstinspires.ftc.teamcode.base.WheelVelocities;
 
@@ -54,17 +55,34 @@ public class VoltageResponse extends CorbelsTeleOp {
     /** How hard the square wave drives. Enough to move the rail, not the robot. */
     static final double AMPLITUDE = 0.4;
 
+    private CorbelsMecanum drivetrain;
     private WheelVelocities wheels;
     private boolean running;
     private long startNs;
 
     @Override
-    protected void bindings() {
-        wheels = new WheelVelocities(hardware);
+    public void init() {
+        initBefore();
+        drivetrain = new CorbelsMecanum(hardware);
+        initAfter(drivetrain);
     }
 
     @Override
-    protected void drive() {
+    public void start() {
+        startBefore();
+        wheels = new WheelVelocities(hardware);
+        startAfter();
+    }
+
+    @Override
+    public void stop() {
+        drivetrain.releaseCommandedWheels();
+        stopAfter();
+    }
+
+    @Override
+    public void loop() {
+        loopBefore();
         boolean wanted = gamepad1.right_trigger > 0.5;
         if (wanted && !running) {
             running = true;
@@ -85,7 +103,7 @@ public class VoltageResponse extends CorbelsTeleOp {
         double volts = hardware.batteryVolts();
         double callMicros = (System.nanoTime() - before) / 1000.0;
 
-        drivetrain.driveWheels(power, power, power, power);
+        drivetrain.setCommandedWheels(power, power, power, power);
 
         data("volts", volts);
         data("volts/call_us", callMicros);
@@ -103,6 +121,8 @@ public class VoltageResponse extends CorbelsTeleOp {
         telemetry.addData("Volts", "%.3f   (read took %.0f us)", volts, callMicros);
         telemetry.addLine("Robot on blocks. Total run: "
                 + (int) (FREQUENCIES.length * PHASE_SECONDS) + " seconds.");
+
+        loopAfter();
     }
 
     /** Which phase we are in, this far into the run. */
@@ -126,6 +146,6 @@ public class VoltageResponse extends CorbelsTeleOp {
 
     @Override
     protected void afterLoop() {
-        if (!running) drivetrain.driveWheels(0, 0, 0, 0);
+        if (!running) drivetrain.setCommandedWheels(0, 0, 0, 0);
     }
 }

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.base;
 
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.drivetrain.Drivetrain;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.ivy.Scheduler;
 import com.pedropathing.math.Pose;
@@ -21,10 +22,9 @@ import java.util.Map;
  * not: find the hardware, make the follower, run the scheduler, keep Panels and
  * the Driver Station fed.
  *
- * <p>Teleops and autos differ in four places, and those are the hooks below:
- * {@link #onInit}, {@link #onStart}, {@link #onLoop} and {@link #afterLoop}.
- * {@link CorbelsTeleOp} and {@link CorbelsAuto} fill them in; a lesson extends
- * one of those, not this.
+ * <p>Teleops and autos differ in three places, and those are the hooks below:
+ * {@link #onInit}, {@link #onStart} and {@link #afterLoop}. {@link CorbelsTeleOp}
+ * and {@link CorbelsAuto} fill them in; a lesson extends one of those, not this.
  *
  * <p>Every run also writes a WPILOG file, openable in AdvantageScope
  * afterwards: everything sent to {@link #data}, the robot's pose and path from
@@ -33,9 +33,17 @@ import java.util.Map;
  * it. Files land in {@code /sdcard/corbelsflightlog} and can be downloaded from
  * {@code http://192.168.43.1:8080/corbelsflightlog}.
  *
- * <p>The lifecycle methods are final on purpose. Everything a lesson needs to
- * change has a hook, and an OpMode that forgets to call {@code super.init()} is
- * a bad afternoon.
+ * <p>A lesson writes {@code init}, {@code start}, {@code loop} and {@code stop}
+ * itself, the way every FTC example does, and calls the hooks below from inside
+ * them: {@link #initBefore} and {@link #initAfter}, {@link #startBefore} and
+ * {@link #startAfter}, {@link #loopBefore} and {@link #loopAfter}, and
+ * {@link #stopAfter}. The hooks are final; what goes between them is the
+ * lesson's.
+ *
+ * <p>{@code init} and {@code loop} are not written here, so the compiler asks
+ * every lesson for them, which is what the SDK does too. {@code start} and
+ * {@code stop} have the obvious bodies below, and a lesson with nothing of its
+ * own to do there may leave them alone.
  */
 public abstract class CorbelsOpMode extends OpMode {
 
@@ -44,11 +52,6 @@ public abstract class CorbelsOpMode extends OpMode {
 
     protected Follower follower;
 
-    /**
-     * The drivetrain, for a lesson that drives the wheels itself. The follower
-     * drives it every update; see {@link CorbelsMecanum#driveWheels}.
-     */
-    protected CorbelsMecanum drivetrain;
     protected PanelsLogger log;
 
     /**
@@ -75,10 +78,6 @@ public abstract class CorbelsOpMode extends OpMode {
 
     /** Once, when the OpMode starts, before {@link #shadows()}. */
     protected void onStart() {
-    }
-
-    /** Every loop, before the follower updates. */
-    protected void onLoop() {
     }
 
     /** Every loop, after the scheduler and the shadow localizers. */
@@ -139,8 +138,8 @@ public abstract class CorbelsOpMode extends OpMode {
 
     // ------------------------------------------------------------ lifecycle
 
-    @Override
-    public final void init() {
+    /** The hardware and the flight log. The first thing a lesson's init() calls. */
+    protected final void initBefore() {
         // Every device, looked up once, before the match starts. A name that
         // doesn't match the configuration fails here, where it can be read --
         // not halfway through a match.
@@ -150,8 +149,19 @@ public abstract class CorbelsOpMode extends OpMode {
         // Robot Controller closes it if the OpMode never runs.
         flight = FtcFlightLog.open(this);
         pedro = new PedroFlightLog(flight, "Robot");
-        drivetrain = RobotFactory.drivetrain.apply(hardware);
-        follower = RobotFactory.follower.apply(hardwareMap, drivetrain);
+    }
+
+    /**
+     * The follower, for a lesson that sets the motors itself. The follower reads
+     * the localizer and reports the pose, and never touches a motor.
+     */
+    protected final void initAfter() {
+        initAfter(new PassiveDriveTrain());
+    }
+
+    /** The follower, driving the drivetrain given. The last thing a lesson's init() calls. */
+    protected final void initAfter(Drivetrain driven) {
+        follower = RobotFactory.follower.apply(hardwareMap, driven);
         onInit();
         follower.update();
         telemetry.addLine("Panels: http://192.168.43.1:8001");
@@ -159,7 +169,13 @@ public abstract class CorbelsOpMode extends OpMode {
     }
 
     @Override
-    public final void start() {
+    public void start() {
+        startBefore();
+        startAfter();
+    }
+
+    /** The scheduler, Panels and the logger. The first thing a lesson's start() calls. */
+    protected final void startBefore() {
         Scheduler.reset();
         panels = PanelsTelemetry.INSTANCE.getTelemetry();
         log = new PanelsLogger();
@@ -168,14 +184,29 @@ public abstract class CorbelsOpMode extends OpMode {
         shadow = new Shadow();
         loops = 0;
         onStart();
+    }
+
+    /** The shadow localizers. The last thing a lesson's start() calls. */
+    protected final void startAfter() {
         shadows();
         shadow.setPose(follower.pose());
     }
 
-    @Override
-    public final void loop() {
+    /**
+     * Counts the loop and reads the gamepads. The first thing a lesson's loop()
+     * calls, so a button pressed now is seen by the lesson's own code now.
+     */
+    protected final void loopBefore() {
         loops++;
-        onLoop();
+        pollInputs();
+    }
+
+    /** Where {@link CorbelsTeleOp} reads its buttons. Nothing for an auto to do. */
+    protected void pollInputs() {
+    }
+
+    /** The follower, the scheduler and the logs. The last thing a lesson's loop() calls. */
+    protected final void loopAfter() {
         follower.update();
         Scheduler.execute();
         shadow.update(this::data);
@@ -189,7 +220,12 @@ public abstract class CorbelsOpMode extends OpMode {
     }
 
     @Override
-    public final void stop() {
+    public void stop() {
+        stopAfter();
+    }
+
+    /** Wheels to zero and the flight log closed. The last thing a lesson's stop() calls. */
+    protected final void stopAfter() {
         follower.manual(0, 0, 0);
         follower.update();
         if (flight != null) flight.close();

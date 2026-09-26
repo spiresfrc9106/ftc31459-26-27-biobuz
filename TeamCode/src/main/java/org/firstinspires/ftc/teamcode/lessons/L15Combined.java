@@ -1,15 +1,28 @@
 package org.firstinspires.ftc.teamcode.lessons;
 
 import com.pedropathing.api.PoseFactory;
+import com.pedropathing.ivy.commands.Commands;
 import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
+import org.firstinspires.ftc.teamcode.base.Drive;
 import org.firstinspires.ftc.teamcode.base.HeadingHold;
+import org.firstinspires.ftc.teamcode.base.odometry.HardwareWheelSource;
+import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 /**
- * L15: everything at once -- field relative with heading hold, robot relative
- * on the bumper, drive-to-pose on Y, and your localizer running alongside.
+ * L15: everything at once.
+ *
+ * <table>
+ *   <tr><td>nothing held</td><td>field relative, holding the heading you left</td></tr>
+ *   <tr><td>right bumper</td><td>robot relative</td></tr>
+ *   <tr><td>A</td><td>turn to 45 degrees and hold it; the sticks still drive</td></tr>
+ *   <tr><td>Y</td><td>drive to (24, 24, -45); any stick takes control back</td></tr>
+ * </table>
+ *
+ * <p>The encoder localizer runs alongside the real one, so the field view shows
+ * both answers.
  *
  * <p>Passes when: LessonsTest.l15_everythingTogether
  */
@@ -17,7 +30,12 @@ import org.firstinspires.ftc.teamcode.base.HeadingHold;
 public class L15Combined extends CorbelsTeleOp {
 
     private static final PoseFactory POSES = PoseFactory.degrees();
-    private static final Pose TARGET = POSES.of(120, 72, 90);
+
+    /** Where Y drives to. */
+    private static final Pose TARGET_POSE = POSES.of(24, 24, -45);
+
+    /** Where A points. */
+    private static final double TARGET_HEADING_DEGREES = 45;
 
     private HeadingHold heading;
     private boolean drivingItself;
@@ -29,14 +47,80 @@ public class L15Combined extends CorbelsTeleOp {
 
     @Override
     protected void bindings() {
-        // TODO 2: heading hold from lesson 13, and the Y binding from lesson 14.
+        heading = new HeadingHold(Constants.foresightConfig.headingFeedback.get());
+
+        // A: point at a fixed field heading. Translation stays with the driver.
+        buttons.whenPressed(() -> gamepad1.a, Commands.instant(() -> {
+            drivingItself = false;
+            heading.aimAt(Math.toRadians(TARGET_HEADING_DEGREES));
+        }));
+
+        // Y: hand the whole robot to the follower until a stick moves.
+        buttons.whenPressed(() -> gamepad1.y, Commands.instant(() -> {
+            follower.hold(TARGET_POSE);
+            drivingItself = true;
+        }));
+    }
+
+    private LessonDriveTrain wheels;
+
+    @Override
+    public void init() {
+        initBefore();
+        wheels = new LessonDriveTrain(hardware);
+        initAfter(wheels);
     }
 
     @Override
-    protected void drive() {
-        // TODO 3: lesson 14's hand-off, then lesson 13's heading hold, then
-        //         lesson 12's bumper switch. Deadband and square the sticks
-        //         with Drive.deadband(...) and Drive.squared(...) so the robot
-        //         is calmer to drive.
+    public void start() {
+        startBefore();
+        startAfter();
+    }
+
+    @Override
+    public void loop() {
+        loopBefore();
+        driveTheRobot();
+        loopAfter();
+    }
+
+    @Override
+    public void stop() {
+        stopAfter();
+    }
+
+    /**
+     * This lesson's own driving code. It lives in its own method because it
+     * returns early, and {@code loop()} must always reach {@code loopAfter()}:
+     * that is where the follower updates and the flight log is written.
+     */
+    private void driveTheRobot() {
+        double forward = Drive.squared(Drive.deadband(-gamepad1.left_stick_y, 0.05));
+        double left = Drive.squared(Drive.deadband(-gamepad1.left_stick_x, 0.05));
+        double stick = Drive.deadband(gamepad1.right_stick_x, 0.05);
+        boolean driverWantsControl = forward != 0 || left != 0 || stick != 0;
+
+        if (drivingItself) {
+            if (!driverWantsControl) {
+                data("drive/mode", "AUTO");
+                data("drive/target_deg", Math.toDegrees(TARGET_POSE.heading()));
+                return;
+            }
+            drivingItself = false;      // a stick moved: the driver has it back
+            heading.release();
+        }
+
+        double turn = heading.turn(follower, stick);
+        Double held = heading.target();
+        data("drive/aiming", held != null);
+        if (held != null) data("drive/target_deg", Math.toDegrees(held));
+
+        if (gamepad1.right_bumper) {
+            data("drive/mode", "ROBOT");
+            Drive.holonomic(follower, forward, left, turn);
+        } else {
+            data("drive/mode", "FIELD");
+            Drive.fieldRelative(follower, forward, left, turn);
+        }
     }
 }

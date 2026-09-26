@@ -36,19 +36,39 @@ public class L17aMeasureTicksPerInch extends CorbelsTeleOp {
     private double startX, startY;
     private double inches, ticks;
 
+    private LessonDriveTrain wheels;
+
     @Override
-    protected void bindings() {
+    public void init() {
+        initBefore();
+        wheels = new LessonDriveTrain(hardware);
+        initAfter(wheels);
+    }
+
+    @Override
+    public void start() {
+        startBefore();
         // The wheels must roll freely, so no braking while we push.
         savedBrakeMode = Constants.manualBrakeMode;
         Constants.manualBrakeMode = false;
         startTicks = ticks();
         startX = follower.pose().x();
         startY = follower.pose().y();
+        startAfter();
     }
 
     @Override
-    protected void drive() {
-        drivetrain.driveWheels(0, 0, 0, 0);       // no power: we are pushing
+    public void stop() {
+        // Hand the wheels back before the follower's last update, or they keep
+        // whatever power the last loop commanded.
+        wheels.releaseCommandedWheels();
+        stopAfter();
+    }
+
+    @Override
+    public void loop() {
+        loopBefore();
+        wheels.setCommandedWheels(0, 0, 0, 0);       // no power: we are pushing
 
         double[] now = ticks();
         ticks = Calibration.forwardPart(now[0] - startTicks[0], now[1] - startTicks[1],
@@ -72,6 +92,8 @@ public class L17aMeasureTicksPerInch extends CorbelsTeleOp {
             telemetry.addData("Currently", "%.2f ticks per inch", measured);
         }
         telemetry.addData("Configured now", "%.2f", Constants.ticksPerInch);
+
+        loopAfter();
     }
 
     private double[] ticks() {

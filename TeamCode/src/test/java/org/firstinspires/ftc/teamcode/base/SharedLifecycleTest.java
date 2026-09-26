@@ -29,9 +29,14 @@ public class SharedLifecycleTest {
 
         @Override protected void bindings() { calls.add("bindings"); }
         @Override protected void shadows() { calls.add("shadows"); }
-        @Override protected void drive() {
+
+        @Override public void init() { initBefore(); initAfter(); }
+
+        @Override public void loop() {
+            loopBefore();
             calls.add("drive");
             data("teleop/loops", loops());
+            loopAfter();
         }
     }
 
@@ -51,6 +56,10 @@ public class SharedLifecycleTest {
         }
 
         @Override protected void shadows() { calls.add("shadows"); }
+
+        @Override public void init() { initBefore(); initAfter(); }
+
+        @Override public void loop() { loopBefore(); loopAfter(); }
     }
 
     @Test

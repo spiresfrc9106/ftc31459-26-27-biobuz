@@ -21,7 +21,15 @@ public class CorbelsMecanumTest {
 
     /** A teleop that does nothing, just to get a harness and its fake motors. */
     public static class Idle extends CorbelsTeleOp {
-        @Override protected void drive() { }
+        CorbelsMecanum drivetrain;
+
+        @Override public void init() {
+            initBefore();
+            drivetrain = new CorbelsMecanum(hardware);
+            initAfter(drivetrain);
+        }
+
+        @Override public void loop() { loopBefore(); loopAfter(); }
     }
 
     @Before
@@ -70,24 +78,24 @@ public class CorbelsMecanumTest {
 
     @Test
     public void aLessonCanDriveTheWheelsItselfAndHandThemBack() {
-        drivetrain.driveWheels(0.1, 0.2, 0.3, 0.4);
-        assertTrue(drivetrain.wheelsAreCommanded());
+        drivetrain.setCommandedWheels(0.1, 0.2, 0.3, 0.4);
+        assertTrue(drivetrain.commandedWheelsAreSet());
 
         // What the follower asks for is ignored while a lesson is driving.
         drivetrain.drive(new DrivePowers(1, 0, 0), true);
         assertArrayEquals(new double[]{0.1, 0.2, 0.3, 0.4}, motorPowers(), 1e-9);
 
-        drivetrain.releaseWheels();
-        assertFalse(drivetrain.wheelsAreCommanded());
+        drivetrain.releaseCommandedWheels();
+        assertFalse(drivetrain.commandedWheelsAreSet());
         drivetrain.drive(new DrivePowers(1, 0, 0), true);
         assertArrayEquals("the follower has them back", new double[]{1, 1, 1, 1}, motorPowers(), 1e-9);
     }
 
     @Test
     public void stoppingReleasesTheWheelsAndZeroesThem() {
-        drivetrain.driveWheels(1, 1, 1, 1);
+        drivetrain.setCommandedWheels(1, 1, 1, 1);
         drivetrain.stop();
-        assertFalse(drivetrain.wheelsAreCommanded());
+        assertFalse(drivetrain.commandedWheelsAreSet());
         assertArrayEquals(new double[]{0, 0, 0, 0}, motorPowers(), 1e-9);
     }
 

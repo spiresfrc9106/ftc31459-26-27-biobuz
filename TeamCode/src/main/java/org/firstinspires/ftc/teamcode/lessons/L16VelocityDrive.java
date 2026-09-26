@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
  * goes that fast whether the battery is full or flat -- because the code
  * measures what the wheels are doing and corrects.
  *
- * <p>Two parts to that, and both are in {@link #drive}:
+ * <p>Two parts to that, and both are in {@link #loop}:
  *
  * <ul>
  *   <li><b>Feedforward</b> -- a guess at the power needed for a wanted speed,
@@ -35,6 +35,10 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
  * <p>Feedforward alone is always a little off. Feedback alone has to build up
  * error before it does anything, so it lags. Together they are how nearly every
  * velocity controller works.
+ *
+ * <p>Passes when: LessonsTest.l16_theSticksCommandASpeedAndTheWheelsAreCorrectedTowardsIt,
+ * LessonsTest.l16_whenTheWheelsAreUpToSpeedOnlyTheFeedforwardRemains and
+ * LessonsTest.l16_turningAskesEachSideForOppositeSpeeds
  */
 @TeleOp(name = "L16 Velocity Drive", group = "Lessons")
 public class L16VelocityDrive extends CorbelsTeleOp {
@@ -51,37 +55,56 @@ public class L16VelocityDrive extends CorbelsTeleOp {
     /** Power per inch per second of error. The feedback correction. */
     private static final double kP = 0.008;
 
-    private WheelVelocities wheels;
+    private LessonDriveTrain wheels;
+    private WheelVelocities measured;
 
     @Override
-    protected void bindings() {
-        wheels = new WheelVelocities(hardware);
+    public void init() {
+        initBefore();
+        wheels = new LessonDriveTrain(hardware);
+        measured = new WheelVelocities(hardware);
+        initAfter(wheels);
     }
 
     @Override
-    protected void drive() {
-        // TODO 1. Read the sticks as a SPEED, not a power. Full forward should
-        //         ask for MAX_IPS inches per second; full turn, MAX_TURN_RADPS
-        //         radians per second. Use Drive.deadband(value, 0.05) as usual.
+    public void start() {
+        startBefore();
+        startAfter();
+    }
+
+    @Override
+    public void stop() {
+        // Hand the wheels back before the follower's last update, or they keep
+        // whatever power the last loop commanded.
+        wheels.releaseCommandedWheels();
+        stopAfter();
+    }
+
+    @Override
+    public void loop() {
+        loopBefore();
+        // TODO 1: read the sticks as a SPEED, not a power. Full forward asks for
+        //         MAX_IPS inches per second; full turn, MAX_TURN_RADPS radians per
+        //         second. Use Drive.deadband(value, 0.05) as usual, and remember
+        //         the minus signs from lesson 5.
         double forwardIps = 0;
         double leftIps = 0;
         double turnRadps = 0;
 
-        // TODO 2. Work out how fast each wheel has to travel for the robot to
-        //         move like that. WheelTargets.forMecanum does the mixing;
-        //         Constants.turnRadiusInches says how far a wheel is from
+        // TODO 2: work out how fast each wheel has to travel for the robot to move
+        //         like that. WheelTargets.forMecanum(forward, left, turn, radius)
+        //         does the arithmetic; the radius is Constants.turnRadiusInches.
         double[] target = new double[4];
 
-        // TODO 3. Ask the motors how fast their wheels are actually going.
-        //         WheelVelocities was made for you in bindings().
+        // TODO 3: ask the motors how fast their wheels are actually going.
+        //         measured.all() hands back all four, in inches per second.
         double[] actual = new double[4];
 
-        // TODO 4. For each wheel, guess the power from the target (kV), then
-        //         correct it by the error (kP), and clamp the result to -1..1.
-        //         power = kV * target + kP * (target - actual)
+        // TODO 4: guess a power for each wheel, then correct it by the error, and
+        //         send all four with wheels.setCommandedWheels(...):
+        //             power = kV * target + kP * (target - actual)
+        //         clamp(...) below keeps the answer inside -1 to 1.
         double[] power = new double[4];
-
-        drivetrain.driveWheels(power[0], power[1], power[2], power[3]);
 
         String[] names = {"frontLeft", "frontRight", "backLeft", "backRight"};
         for (int i = 0; i < 4; i++) {
@@ -93,6 +116,8 @@ public class L16VelocityDrive extends CorbelsTeleOp {
         data("command/forward_ips", forwardIps);
         data("command/left_ips", leftIps);
         data("command/turn_radps", turnRadps);
+
+        loopAfter();
     }
 
     private static double clamp(double v) {
