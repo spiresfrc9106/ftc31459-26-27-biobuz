@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.sysid;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.base.CorbelsMecanum;
 import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
 import org.firstinspires.ftc.teamcode.base.WheelVelocities;
 
@@ -59,12 +60,28 @@ public class VoltageResponse extends CorbelsTeleOp {
     private long startNs;
 
     @Override
-    protected void bindings() {
-        wheels = new WheelVelocities(hardware);
+    public void init() {
+        initBefore();
+        drivetrain = new CorbelsMecanum(hardware);
+        initAfter(drivetrain);
     }
 
     @Override
-    protected void drive() {
+    public void start() {
+        startBefore();
+        wheels = new WheelVelocities(hardware);
+        startAfter();
+    }
+
+    @Override
+    public void stop() {
+        drivetrain.releaseWheels();
+        stopAfter();
+    }
+
+    @Override
+    public void loop() {
+        loopBefore();
         boolean wanted = gamepad1.right_trigger > 0.5;
         if (wanted && !running) {
             running = true;
@@ -103,6 +120,8 @@ public class VoltageResponse extends CorbelsTeleOp {
         telemetry.addData("Volts", "%.3f   (read took %.0f us)", volts, callMicros);
         telemetry.addLine("Robot on blocks. Total run: "
                 + (int) (FREQUENCIES.length * PHASE_SECONDS) + " seconds.");
+
+        loopAfter();
     }
 
     /** Which phase we are in, this far into the run. */
