@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
  * goes that fast whether the battery is full or flat -- because the code
  * measures what the wheels are doing and corrects.
  *
- * <p>Two parts to that, and both are in {@link #drive}:
+ * <p>Two parts to that, and both are in {@link #loop}:
  *
  * <ul>
  *   <li><b>Feedforward</b> -- a guess at the power needed for a wanted speed,
