@@ -22,11 +22,19 @@ public abstract class CorbelsTeleOp extends CorbelsOpMode {
     protected final void onStart() {
         buttons = new Buttons();
         bindings();
+        // Park the follower where it will pass the sticks through. Its own mode
+        // starts IDLE, and in IDLE it stops the drivetrain every loop instead of
+        // driving it.
+        follower.manual(0, 0, 0);
     }
 
     @Override
     protected final void onLoop() {
-        buttons.poll();
         drive();
+    }
+
+    @Override
+    protected void pollInputs() {
+        if (buttons != null) buttons.poll();
     }
 }
