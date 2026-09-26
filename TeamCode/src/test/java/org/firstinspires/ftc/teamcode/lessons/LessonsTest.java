@@ -100,23 +100,36 @@ public class LessonsTest {
     // -------------------------------------------------------------- L3
 
     @Test
-    public void l3_tankDrivesStraightAndTurns() {
-        OpModeHarness h = new OpModeHarness(new L3Tank());
+    public void l3_aLetGoStickIsIgnoredAndHalfStickIsQuarterPower() {
+        OpModeHarness h = new OpModeHarness(new L3SmoothSticks());
         h.init();
         h.start();
 
-        h.gamepad1.left_stick_y = -1.0f;      // both sticks forward
-        h.gamepad1.right_stick_y = -1.0f;
+        h.gamepad1.left_stick_y = -0.03f;     // a stick that was let go
+        h.gamepad1.right_stick_y = 0.04f;
         h.loop();
-        assertEquals(1.0, h.forward(), EPS);
-        assertEquals("tank never strafes", 0.0, h.strafe(), EPS);
-        assertEquals(0.0, h.turn(), EPS);
+        assertEquals("inside the deadband, so the robot does not creep",
+                0.0, h.motors.get(Constants.frontLeftName).power, EPS);
+        assertEquals(0.0, h.motors.get(Constants.frontRightName).power, EPS);
+        assertNotEquals("the raw stick was not 0 though", 0.0,
+                number(((L3SmoothSticks) h.opMode()).values(), "stick/left_raw"), EPS);
 
-        h.gamepad1.right_stick_y = 1.0f;      // sticks opposed
+        h.gamepad1.left_stick_y = -0.5f;      // half forward
+        h.gamepad1.right_stick_y = 0.5f;      // half back
         h.loop();
-        assertEquals(0.0, h.forward(), EPS);
-        assertEquals(1.0, h.turn(), EPS);
+        assertEquals("half stick is quarter power",
+                0.25, h.motors.get(Constants.frontLeftName).power, EPS);
+        assertEquals("and squaring keeps the sign",
+                -0.25, h.motors.get(Constants.frontRightName).power, EPS);
+
+        h.gamepad1.left_stick_y = -1.0f;      // fully forward
+        h.loop();
+        assertEquals("full stick still reaches full power",
+                1.0, h.motors.get(Constants.frontLeftName).power, EPS);
+        assertEquals(1.0, h.motors.get(Constants.backLeftName).power, EPS);
+
         h.stop();
+        assertEquals(0.0, h.motors.get(Constants.frontLeftName).power, EPS);
     }
 
     // -------------------------------------------------------------- L4
