@@ -51,15 +51,34 @@ public class L16VelocityDrive extends CorbelsTeleOp {
     /** Power per inch per second of error. The feedback correction. */
     private static final double kP = 0.008;
 
-    private WheelVelocities wheels;
+    private LessonDriveTrain wheels;
+    private WheelVelocities measured;
 
     @Override
-    protected void bindings() {
-        wheels = new WheelVelocities(hardware);
+    public void init() {
+        initBefore();
+        wheels = new LessonDriveTrain(hardware);
+        measured = new WheelVelocities(hardware);
+        initAfter(wheels);
     }
 
     @Override
-    protected void drive() {
+    public void start() {
+        startBefore();
+        startAfter();
+    }
+
+    @Override
+    public void stop() {
+        // Hand the wheels back before the follower's last update, or they keep
+        // whatever power the last loop commanded.
+        wheels.releaseCommandedWheels();
+        stopAfter();
+    }
+
+    @Override
+    public void loop() {
+        loopBefore();
         // 1. The sticks ask for a speed, not a power.
         double forwardIps = Drive.deadband(-gamepad1.left_stick_y, 0.05) * MAX_IPS;
         double leftIps = Drive.deadband(-gamepad1.left_stick_x, 0.05) * MAX_IPS;
@@ -69,7 +88,7 @@ public class L16VelocityDrive extends CorbelsTeleOp {
         double[] target = WheelTargets.forMecanum(forwardIps, leftIps, turnRadps, Constants.turnRadiusInches);
 
         // 3. What each wheel is actually doing.
-        double[] actual = wheels.all();
+        double[] actual = measured.all();
 
         // 4. Guess the power, then correct it by the error.
         double[] power = new double[4];
@@ -78,7 +97,7 @@ public class L16VelocityDrive extends CorbelsTeleOp {
             double feedback = kP * (target[i] - actual[i]);
             power[i] = clamp(feedforward + feedback);
         }
-        drivetrain.driveWheels(power[0], power[1], power[2], power[3]);
+        wheels.setCommandedWheels(power[0], power[1], power[2], power[3]);
 
         String[] names = {"frontLeft", "frontRight", "backLeft", "backRight"};
         for (int i = 0; i < 4; i++) {
@@ -90,6 +109,8 @@ public class L16VelocityDrive extends CorbelsTeleOp {
         data("command/forward_ips", forwardIps);
         data("command/left_ips", leftIps);
         data("command/turn_radps", turnRadps);
+
+        loopAfter();
     }
 
     private static double clamp(double v) {

@@ -97,6 +97,21 @@ public class LessonDriveTrainTest {
     }
 
     @Test
+    public void releasingTheWheelsHandsThemBackToTheFollower() {
+        wheels.setCommandedWheels(0.1, 0.2, 0.3, 0.4);
+        follower(0, 0, 0);
+        assertEquals("commanded, so the follower's zero is ignored", 0.1, frontLeft.power, EPS);
+
+        wheels.releaseCommandedWheels();
+        follower(0, 0, 0);
+        assertEquals("released, so the follower's zero reaches the motor",
+                0.0, frontLeft.power, EPS);
+        assertEquals(0.0, frontRight.power, EPS);
+        assertEquals(0.0, backLeft.power, EPS);
+        assertEquals(0.0, backRight.power, EPS);
+    }
+
+    @Test
     public void askingForMoreThanAMotorCanGiveScalesEveryWheelDownTogether() {
         // Full forward and full left at once is a diagonal, and a mecanum drives
         // a diagonal on one pair of wheels. Unscaled the pair wants 2.
