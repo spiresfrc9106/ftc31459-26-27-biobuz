@@ -46,14 +46,14 @@ public class L6FollowerWheels extends CorbelsTeleOp {
     public void loop() {
         loopBefore();
 
-        double forward = -gamepad1.left_stick_y;
-        double left = -gamepad1.left_stick_x;
-        double turn = -gamepad1.right_stick_x;
-        follower.manual(forward, left, turn);
+        double forwardSpeed = -gamepad1.left_stick_y;
+        double strafeLeftSpeed = -gamepad1.left_stick_x;
+        double turnCcwSpeed = -gamepad1.right_stick_x;
+        follower.manual(forwardSpeed, strafeLeftSpeed, turnCcwSpeed);
 
-        Tracker.publish("command/forward", forward);
-        Tracker.publish("command/left", left);
-        Tracker.publish("command/turn_ccw", turn);
+        Tracker.publish("command/forward", forwardSpeed);
+        Tracker.publish("command/left", strafeLeftSpeed);
+        Tracker.publish("command/turn_ccw", turnCcwSpeed);
 
         loopAfter();
     }

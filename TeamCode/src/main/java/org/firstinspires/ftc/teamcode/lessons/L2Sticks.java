@@ -47,13 +47,13 @@ public class L2Sticks extends CorbelsTeleOp {
     public void loop() {
         loopBefore();
 
-        double left = -gamepad1.left_stick_y;
-        double right = -gamepad1.right_stick_y;
-        tank.sticks(left, right);
+        double leftSpeed = -gamepad1.left_stick_y;
+        double rightSpeed = -gamepad1.right_stick_y;
+        tank.sticks(leftSpeed, rightSpeed);
 
-        Tracker.publish("stick/leftY", left);
+        Tracker.publish("stick/leftY", leftSpeed);
         Tracker.publish("stick/leftX", gamepad1.left_stick_x);
-        Tracker.publish("stick/rightY", right);
+        Tracker.publish("stick/rightY", rightSpeed);
         Tracker.publish("stick/rightX", gamepad1.right_stick_x);
 
         loopAfter();

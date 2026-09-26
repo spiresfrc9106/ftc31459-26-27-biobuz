@@ -94,10 +94,10 @@ public class L15Combined extends CorbelsTeleOp {
      * that is where the follower updates and the flight log is written.
      */
     private void driveTheRobot() {
-        double forward = Drive.squared(Drive.deadband(-gamepad1.left_stick_y, 0.05));
-        double left = Drive.squared(Drive.deadband(-gamepad1.left_stick_x, 0.05));
-        double stick = Drive.deadband(gamepad1.right_stick_x, 0.05);
-        boolean driverWantsControl = forward != 0 || left != 0 || stick != 0;
+        double forwardSpeed = Drive.squared(Drive.deadband(-gamepad1.left_stick_y, 0.05));
+        double strafeLeftSpeed = Drive.squared(Drive.deadband(-gamepad1.left_stick_x, 0.05));
+        double turnStick = Drive.deadband(-gamepad1.right_stick_x, 0.05);
+        boolean driverWantsControl = forwardSpeed != 0 || strafeLeftSpeed != 0 || turnStick != 0;
 
         if (drivingItself) {
             if (!driverWantsControl) {
@@ -109,17 +109,17 @@ public class L15Combined extends CorbelsTeleOp {
             heading.release();
         }
 
-        double turn = heading.turn(follower, stick);
+        double turnCcwSpeed = heading.turn(follower, turnStick);
         Double held = heading.target();
         Tracker.publish("drive/aiming", held != null);
         if (held != null) Tracker.publish("drive/target_deg", Math.toDegrees(held));
 
         if (gamepad1.right_bumper) {
             Tracker.publish("drive/mode", "ROBOT");
-            Drive.holonomic(follower, forward, left, turn);
+            Drive.holonomic(follower, forwardSpeed, strafeLeftSpeed, turnCcwSpeed);
         } else {
             Tracker.publish("drive/mode", "FIELD");
-            Drive.fieldRelative(follower, forward, left, turn);
+            Drive.fieldRelative(follower, forwardSpeed, strafeLeftSpeed, turnCcwSpeed);
         }
     }
 }

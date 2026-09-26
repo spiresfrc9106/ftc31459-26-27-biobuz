@@ -63,14 +63,14 @@ public class MecanumEncoderLocalizer implements Localizer {
         double dBackLeft = wheels[2] - lastWheels[2];
         double dBackRight = wheels[3] - lastWheels[3];
 
-        double forward = (dFrontLeft + dFrontRight + dBackLeft + dBackRight) / 4;
-        double left = (-dFrontLeft + dFrontRight + dBackLeft - dBackRight) / 4;
+        double forwardIn = (dFrontLeft + dFrontRight + dBackLeft + dBackRight) / 4;
+        double strafeLeftIn = (-dFrontLeft + dFrontRight + dBackLeft - dBackRight) / 4;
 
         double dHeading = HeadingHold.wrap(rawHeading - lastRawHeading);
         double midHeading = lastRawHeading + headingOffset + dHeading / 2;   // halfway through the step
 
-        x += forward * Math.cos(midHeading) - left * Math.sin(midHeading);
-        y += forward * Math.sin(midHeading) + left * Math.cos(midHeading);
+        x += forwardIn * Math.cos(midHeading) - strafeLeftIn * Math.sin(midHeading);
+        y += forwardIn * Math.sin(midHeading) + strafeLeftIn * Math.cos(midHeading);
 
         double seconds = (now - lastNanos) / 1e9;
         lastWheels = wheels.clone();
@@ -78,16 +78,17 @@ public class MecanumEncoderLocalizer implements Localizer {
         lastNanos = now;
 
         if (seconds > 0) {
-            publish(forward / seconds, left / seconds, dHeading / seconds);
+            publish(forwardIn / seconds, strafeLeftIn / seconds, dHeading / seconds);
         } else {
             publish(0, 0, 0);
         }
     }
 
-    private void publish(double forwardPerSecond, double leftPerSecond, double turnPerSecond) {
+    private void publish(double forwardSpeedInPerS, double strafeLeftSpeedInPerS,
+                         double turnCcwSpeedRadPerS) {
         state = MotionState.ofTwist(
                 POSES.of(x, y, lastRawHeading + headingOffset),
-                new Twist(forwardPerSecond, leftPerSecond, turnPerSecond));
+                new Twist(forwardSpeedInPerS, strafeLeftSpeedInPerS, turnCcwSpeedRadPerS));
     }
 
     @Override

@@ -81,12 +81,13 @@ public class L16VelocityDrive extends CorbelsTeleOp {
     public void loop() {
         loopBefore();
         // 1. The sticks ask for a speed, not a power.
-        double forwardIps = Drive.deadband(-gamepad1.left_stick_y, 0.05) * MAX_IPS;
-        double leftIps = Drive.deadband(-gamepad1.left_stick_x, 0.05) * MAX_IPS;
-        double turnRadps = Drive.deadband(-gamepad1.right_stick_x, 0.05) * MAX_TURN_RADPS;
+        double forwardSpeedInPerS = Drive.deadband(-gamepad1.left_stick_y, 0.05) * MAX_IPS;
+        double strafeLeftSpeedInPerS = Drive.deadband(-gamepad1.left_stick_x, 0.05) * MAX_IPS;
+        double turnCcwSpeedRadPerS = Drive.deadband(-gamepad1.right_stick_x, 0.05) * MAX_TURN_RADPS;
 
         // 2. What each wheel must do for the robot to move like that.
-        double[] target = WheelTargets.forMecanum(forwardIps, leftIps, turnRadps, Constants.turnRadiusInches);
+        double[] target = WheelTargets.forMecanum(forwardSpeedInPerS, strafeLeftSpeedInPerS,
+                turnCcwSpeedRadPerS, Constants.turnRadiusInches);
 
         // 3. What each wheel is actually doing.
         double[] actual = measured.all();
@@ -107,9 +108,9 @@ public class L16VelocityDrive extends CorbelsTeleOp {
             Tracker.publish("wheel/" + names[i] + "/error_ips", target[i] - actual[i]);
             Tracker.publish("wheel/" + names[i] + "/power", power[i]);
         }
-        Tracker.publish("command/forward_ips", forwardIps);
-        Tracker.publish("command/left_ips", leftIps);
-        Tracker.publish("command/turn_radps", turnRadps);
+        Tracker.publish("command/forward_ips", forwardSpeedInPerS);
+        Tracker.publish("command/left_ips", strafeLeftSpeedInPerS);
+        Tracker.publish("command/turn_radps", turnCcwSpeedRadPerS);
 
         loopAfter();
     }

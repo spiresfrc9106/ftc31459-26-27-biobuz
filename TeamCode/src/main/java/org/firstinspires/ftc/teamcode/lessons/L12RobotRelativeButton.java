@@ -36,13 +36,13 @@ public class L12RobotRelativeButton extends CorbelsTeleOp {
     @Override
     public void loop() {
         loopBefore();
-        double forward = -gamepad1.left_stick_y;
-        double left = -gamepad1.left_stick_x;
-        double turn = gamepad1.right_stick_x;
+        double forwardSpeed = -gamepad1.left_stick_y;
+        double strafeLeftSpeed = -gamepad1.left_stick_x;
+        double turnCcwSpeed = -gamepad1.right_stick_x;
         if (gamepad1.right_bumper) {
-            Drive.holonomic(follower, forward, left, turn);
+            Drive.holonomic(follower, forwardSpeed, strafeLeftSpeed, turnCcwSpeed);
         } else {
-            Drive.fieldRelative(follower, forward, left, turn);
+            Drive.fieldRelative(follower, forwardSpeed, strafeLeftSpeed, turnCcwSpeed);
         }
         Tracker.publish("drive/robotRelative", gamepad1.right_bumper);
         loopAfter();

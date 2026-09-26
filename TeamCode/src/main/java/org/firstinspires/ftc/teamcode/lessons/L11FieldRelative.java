@@ -33,7 +33,7 @@ public class L11FieldRelative extends CorbelsTeleOp {
         Drive.fieldRelative(follower,
                 -gamepad1.left_stick_y,      // away from the driver
                 -gamepad1.left_stick_x,      // to the driver's left
-                gamepad1.right_stick_x);
+                -gamepad1.right_stick_x);    // counter-clockwise
         loopAfter();
     }
 

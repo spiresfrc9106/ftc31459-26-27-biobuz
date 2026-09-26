@@ -50,17 +50,17 @@ public class L3SmoothSticks extends CorbelsTeleOp {
     public void loop() {
         loopBefore();
 
-        double leftRaw = -gamepad1.left_stick_y;
-        double rightRaw = -gamepad1.right_stick_y;
+        double leftRawSpeed = -gamepad1.left_stick_y;
+        double rightRawSpeed = -gamepad1.right_stick_y;
 
-        double left = Drive.squared(Drive.deadband(leftRaw, DEADBAND));
-        double right = Drive.squared(Drive.deadband(rightRaw, DEADBAND));
-        tank.sticks(left, right);
+        double leftSpeed = Drive.squared(Drive.deadband(leftRawSpeed, DEADBAND));
+        double rightSpeed = Drive.squared(Drive.deadband(rightRawSpeed, DEADBAND));
+        tank.sticks(leftSpeed, rightSpeed);
 
-        Tracker.publish("stick/left_raw", leftRaw);
-        Tracker.publish("stick/left_shaped", left);
-        Tracker.publish("stick/right_raw", rightRaw);
-        Tracker.publish("stick/right_shaped", right);
+        Tracker.publish("stick/left_raw", leftRawSpeed);
+        Tracker.publish("stick/left_shaped", leftSpeed);
+        Tracker.publish("stick/right_raw", rightRawSpeed);
+        Tracker.publish("stick/right_shaped", rightSpeed);
 
         loopAfter();
     }

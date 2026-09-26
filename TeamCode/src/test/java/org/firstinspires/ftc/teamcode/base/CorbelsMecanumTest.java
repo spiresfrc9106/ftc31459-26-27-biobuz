@@ -117,8 +117,9 @@ public class CorbelsMecanumTest {
         // Turning only: each side goes opposite, at omega times the radius.
         assertArrayEquals(new double[]{-8, 8, -8, 8},
                 WheelTargets.forMecanum(0, 0, 1.0, 8), 1e-9);
-        // Left only: the diagonals split.
-        assertArrayEquals(new double[]{10, -10, -10, 10},
+        // Left only: the diagonals split. Front left runs backwards, front
+        // right forwards -- a mecanum travelling to its own left.
+        assertArrayEquals(new double[]{-10, 10, 10, -10},
                 WheelTargets.forMecanum(0, 10, 0, 8), 1e-9);
     }
 }

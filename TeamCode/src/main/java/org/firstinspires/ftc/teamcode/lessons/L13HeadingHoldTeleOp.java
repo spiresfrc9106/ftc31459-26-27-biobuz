@@ -40,8 +40,9 @@ public class L13HeadingHoldTeleOp extends CorbelsTeleOp {
     @Override
     public void loop() {
         loopBefore();
-        double turn = heading.turn(follower, gamepad1.right_stick_x);
-        Drive.fieldRelative(follower, -gamepad1.left_stick_y, -gamepad1.left_stick_x, turn);
+        double turnCcwSpeed = heading.turn(follower, -gamepad1.right_stick_x);
+        Drive.fieldRelative(follower,
+                -gamepad1.left_stick_y, -gamepad1.left_stick_x, turnCcwSpeed);
         Tracker.publish("heading/holding", heading.target() != null);
         Tracker.publish("heading/deg", Math.toDegrees(follower.pose().heading()));
         loopAfter();

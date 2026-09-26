@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.lessons;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
+import org.firstinspires.ftc.teamcode.base.CorbelsDriveTrain;
 import org.firstinspires.ftc.teamcode.base.RobotHardware;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
@@ -19,10 +20,10 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
  * <p>That is the whole trick, and it is these four lines:
  *
  * <pre>
- *   front left  = forward - left - turn
- *   front right = forward + left + turn
- *   back left   = forward + left - turn
- *   back right  = forward - left + turn
+ *   front left  = forwardSpeed - strafeLeftSpeed - turnCcwSpeed
+ *   front right = forwardSpeed + strafeLeftSpeed + turnCcwSpeed
+ *   back left   = forwardSpeed + strafeLeftSpeed - turnCcwSpeed
+ *   back right  = forwardSpeed - strafeLeftSpeed + turnCcwSpeed
  * </pre>
  *
  * <p>Those are the same four lines the path follower uses, so a robot that
@@ -53,18 +54,20 @@ public class L5HolonomicDriveTrain {
     }
 
     /**
-     * Holonomic drive, relative to the robot's own front. {@code forward} drives,
-     * {@code left} slides, {@code turn} spins counter-clockwise. All -1 to 1.
+     * Holonomic drive, relative to the robot's own front.
+     * {@code forwardSpeed} drives, {@code strafeLeftSpeed} slides towards the
+     * robot's left, {@code turnCcwSpeed} spins counter-clockwise. All -1 to 1,
+     * in the directions {@link CorbelsDriveTrain} sets out.
      *
      * <p>Asking for all three at once wants more than a motor can give, so the
      * four powers are scaled down together.
      */
-    public void sticks(double forward, double left, double turn) {
+    public void sticks(double forwardSpeed, double strafeLeftSpeed, double turnCcwSpeed) {
         double[] wheels = {
-                forward - left - turn,
-                forward + left + turn,
-                forward + left - turn,
-                forward - left + turn};
+                forwardSpeed - strafeLeftSpeed - turnCcwSpeed,
+                forwardSpeed + strafeLeftSpeed + turnCcwSpeed,
+                forwardSpeed + strafeLeftSpeed - turnCcwSpeed,
+                forwardSpeed - strafeLeftSpeed + turnCcwSpeed};
 
         double max = 1.0;
         for (double wheel : wheels) max = Math.max(max, Math.abs(wheel));

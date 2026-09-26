@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.lessons;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
+import org.firstinspires.ftc.teamcode.base.CorbelsDriveTrain;
 import org.firstinspires.ftc.teamcode.base.RobotHardware;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
@@ -43,24 +44,25 @@ public class L4ArcadeDriveTrain {
     }
 
     /**
-     * Arcade drive. {@code forward} is how fast to drive, {@code turn} is how
-     * fast to spin counter-clockwise. Both are -1 to 1.
+     * Arcade drive. {@code forwardSpeed} is how fast to drive,
+     * {@code turnCcwSpeed} is how fast to spin counter-clockwise, in the
+     * directions {@link CorbelsDriveTrain} sets out. Both are -1 to 1.
      *
      * <p>Full forward and full turn together want more than a motor can give, so
      * the four powers are scaled down together. Scaling them together keeps the
      * robot going where the driver asked; clipping each one on its own would not.
      */
-    public void sticks(double forward, double turn) {
-        double left = forward - turn;
-        double right = forward + turn;
+    public void sticks(double forwardSpeed, double turnCcwSpeed) {
+        double leftSpeed = forwardSpeed - turnCcwSpeed;
+        double rightSpeed = forwardSpeed + turnCcwSpeed;
 
-        double max = Math.max(1.0, Math.max(Math.abs(left), Math.abs(right)));
-        left /= max;
-        right /= max;
+        double max = Math.max(1.0, Math.max(Math.abs(leftSpeed), Math.abs(rightSpeed)));
+        leftSpeed /= max;
+        rightSpeed /= max;
 
-        frontLeft.setPower(left);
-        backLeft.setPower(left);
-        frontRight.setPower(right);
-        backRight.setPower(right);
+        frontLeft.setPower(leftSpeed);
+        backLeft.setPower(leftSpeed);
+        frontRight.setPower(rightSpeed);
+        backRight.setPower(rightSpeed);
     }
 }

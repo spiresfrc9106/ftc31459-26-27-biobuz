@@ -14,6 +14,14 @@ import java.util.Map;
  * Everything a drivetrain the follower drives has to do, except the two parts a
  * lesson writes.
  *
+ * <p><b>Which way is positive.</b> Pedro's three numbers are
+ * {@code forwardSpeed} along the robot's nose, {@code strafeLeftSpeed} towards
+ * the robot's left, and {@code turnCcwSpeed} counter-clockwise seen from above.
+ * Every name in this project carries the direction for that reason, and a rate
+ * in real units carries the unit too: {@code forwardSpeedInPerS},
+ * {@code turnCcwSpeedRadPerS}. The frame itself is Pedro's, defined at
+ * https://pedropathing.com/docs/pathing/reference/coordinates
+ *
  * <p>Pedro takes any {@link Drivetrain} in its Follower constructor, so this is
  * the seam Pedro provides rather than a patch. The four motors come from
  * {@link RobotHardware}, so they are the same objects the encoder localizer

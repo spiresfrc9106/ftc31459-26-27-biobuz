@@ -9,6 +9,7 @@ import com.pedropathing.api.PoseFactory;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.ivy.Scheduler;
 import com.pedropathing.math.Pose;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 
 import org.firstinspires.ftc.teamcode.base.OpModeHarness;
@@ -17,6 +18,7 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
 import org.junit.After;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -219,6 +221,32 @@ public class LessonsTest {
         h.stop();
     }
 
+    /**
+     * Pushing the right stick right swings the nose right, which is clockwise,
+     * which is a negative turn. Every lesson that hands the stick to a chassis
+     * mapping had it the other way round until 2026-09-26, and only L4, L6,
+     * L13 and L15 had a test that noticed.
+     */
+    @Test
+    public void everyLessonTurnsClockwiseWhenTheRightStickGoesRight() {
+        List<String> wrongWay = new ArrayList<>();
+        for (OpMode lesson : new OpMode[]{new L8CompareLocalizers(), new L11FieldRelative(),
+                new L12RobotRelativeButton(), new L14DriveToPose()}) {
+            OpModeHarness h = new OpModeHarness(lesson);
+            h.init();
+            h.start();
+            h.gamepad1.right_stick_x = 1.0f;
+            h.loop();
+            double turn = h.turn();
+            if (Math.abs(turn - -1.0) > 1e-6) {
+                wrongWay.add(lesson.getClass().getSimpleName() + " turned " + turn);
+            }
+            h.stop();
+        }
+        // Every lesson is named, not just the first, so one run says how many.
+        assertEquals("", String.join("; ", wrongWay));
+    }
+
     // -------------------------------------------------------------- L8
 
     @Test
@@ -329,9 +357,9 @@ public class LessonsTest {
         h.start();
 
         follower.setPose(POSES.of(0, 0, 0));
-        h.gamepad1.right_stick_x = 0.5f;
+        h.gamepad1.right_stick_x = 0.5f;           // pushed right: clockwise
         h.loop();
-        assertEquals("while steering, the stick wins", 0.5, h.turn(), 1e-3);
+        assertEquals("while steering, the stick wins", -0.5, h.turn(), 1e-3);
 
         h.gamepad1.right_stick_x = 0.0f;
         h.loop();                                  // releases: captures heading 0
@@ -428,10 +456,10 @@ public class LessonsTest {
         h.gamepad1.a = true;
         h.loop();
         h.gamepad1.a = false;
-        h.gamepad1.right_stick_x = 0.8f;             // the driver steers
+        h.gamepad1.right_stick_x = 0.8f;             // the driver steers, clockwise
         h.loop();
 
-        assertEquals("the stick wins", 0.8, h.turn(), 1e-3);
+        assertEquals("the stick wins", -0.8, h.turn(), 1e-3);
         assertEquals("not aiming any more", false,
                 Tracker.values().get("drive/aiming"));
     }

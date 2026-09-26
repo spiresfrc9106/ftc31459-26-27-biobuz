@@ -41,7 +41,7 @@ public class L8CompareLocalizers extends CorbelsTeleOp {
     public void loop() {
         loopBefore();
         Drive.holonomic(follower,
-                -gamepad1.left_stick_y, -gamepad1.left_stick_x, gamepad1.right_stick_x);
+                -gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x);
         loopAfter();
     }
 

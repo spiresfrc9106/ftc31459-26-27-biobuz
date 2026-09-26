@@ -40,12 +40,12 @@ public class L4Arcade extends CorbelsTeleOp {
     public void loop() {
         loopBefore();
 
-        double forward = -gamepad1.left_stick_y;
-        double turn = -gamepad1.right_stick_x;
-        arcade.sticks(forward, turn);
+        double forwardSpeed = -gamepad1.left_stick_y;
+        double turnCcwSpeed = -gamepad1.right_stick_x;
+        arcade.sticks(forwardSpeed, turnCcwSpeed);
 
-        Tracker.publish("command/forward", forward);
-        Tracker.publish("command/turn_ccw", turn);
+        Tracker.publish("command/forward", forwardSpeed);
+        Tracker.publish("command/turn_ccw", turnCcwSpeed);
 
         loopAfter();
     }

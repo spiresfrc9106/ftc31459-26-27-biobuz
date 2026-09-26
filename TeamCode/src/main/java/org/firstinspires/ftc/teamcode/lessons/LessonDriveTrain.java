@@ -30,19 +30,20 @@ public class LessonDriveTrain extends CorbelsDriveTrain {
      * The follower's three numbers, as four wheel powers.
      *
      * <p>{@code powers.strafe()} is positive towards the robot's left and
-     * {@code powers.turn()} is positive counter-clockwise, the same as L5.
+     * {@code powers.turn()} is positive counter-clockwise, the same as L5. See
+     * {@link CorbelsDriveTrain} for where those directions come from.
      */
     @Override
     protected double[] mix(DrivePowers powers) {
-        double forward = powers.forward();
-        double left = powers.strafe();
-        double turn = powers.turn();
+        double forwardSpeed = powers.forward();
+        double strafeLeftSpeed = powers.strafe();
+        double turnCcwSpeed = powers.turn();
 
         return new double[]{
-                forward - left - turn,      // front left
-                forward + left + turn,      // front right
-                forward + left - turn,      // back left
-                forward - left + turn};     // back right
+                forwardSpeed - strafeLeftSpeed - turnCcwSpeed,      // front left
+                forwardSpeed + strafeLeftSpeed + turnCcwSpeed,      // front right
+                forwardSpeed + strafeLeftSpeed - turnCcwSpeed,      // back left
+                forwardSpeed - strafeLeftSpeed + turnCcwSpeed};     // back right
     }
 
     /** Sends each of the four powers to its own motor, in that same order. */

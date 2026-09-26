@@ -68,10 +68,11 @@ public class L14DriveToPose extends CorbelsTeleOp {
      * that is where the follower updates and the flight log is written.
      */
     private void driveTheRobot() {
-        double forward = -gamepad1.left_stick_y;
-        double left = -gamepad1.left_stick_x;
-        double turn = gamepad1.right_stick_x;
-        boolean driverWantsControl = Math.abs(forward) > 0.1 || Math.abs(left) > 0.1 || Math.abs(turn) > 0.1;
+        double forwardSpeed = -gamepad1.left_stick_y;
+        double strafeLeftSpeed = -gamepad1.left_stick_x;
+        double turnCcwSpeed = -gamepad1.right_stick_x;
+        boolean driverWantsControl = Math.abs(forwardSpeed) > 0.1
+                || Math.abs(strafeLeftSpeed) > 0.1 || Math.abs(turnCcwSpeed) > 0.1;
 
         if (drivingItself) {
             if (!driverWantsControl) {
@@ -81,6 +82,6 @@ public class L14DriveToPose extends CorbelsTeleOp {
             drivingItself = false;            // the driver takes over
         }
         Tracker.publish("drive/mode", "DRIVER");
-        Drive.fieldRelative(follower, forward, left, turn);
+        Drive.fieldRelative(follower, forwardSpeed, strafeLeftSpeed, turnCcwSpeed);
     }
 }
