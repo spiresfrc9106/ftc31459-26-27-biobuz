@@ -28,6 +28,38 @@ public class L10PathWithTurn extends CorbelsAuto {
     private final Pose corner = POSES.of(96, 72, 0);
     private final Pose end = POSES.of(96, 96, 90);
 
+
+    private LessonDriveTrain wheels;
+
+    @Override
+    public void init() {
+        initBefore();
+        wheels = new LessonDriveTrain(hardware);
+        initAfter(wheels);
+    }
+
+    @Override
+    public void start() {
+        startBefore();
+        startAfter();
+    }
+
+    /**
+     * Nothing of this lesson's own goes here. An autonomous puts its work in
+     * {@link #routine()}, and the scheduler runs it from inside
+     * {@code loopAfter()}.
+     */
+    @Override
+    public void loop() {
+        loopBefore();
+        loopAfter();
+    }
+
+    @Override
+    public void stop() {
+        stopAfter();
+    }
+
     @Override
     protected Pose startPose() {
         return start;

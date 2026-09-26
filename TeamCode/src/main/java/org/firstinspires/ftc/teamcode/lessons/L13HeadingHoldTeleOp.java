@@ -21,11 +21,33 @@ public class L13HeadingHoldTeleOp extends CorbelsTeleOp {
         heading = new HeadingHold(Constants.foresightConfig.headingFeedback.get());
     }
 
+    private LessonDriveTrain wheels;
+
     @Override
-    protected void drive() {
+    public void init() {
+        initBefore();
+        wheels = new LessonDriveTrain(hardware);
+        initAfter(wheels);
+    }
+
+    @Override
+    public void start() {
+        startBefore();
+        startAfter();
+    }
+
+    @Override
+    public void loop() {
+        loopBefore();
         double turn = heading.turn(follower, gamepad1.right_stick_x);
         Drive.fieldRelative(follower, -gamepad1.left_stick_y, -gamepad1.left_stick_x, turn);
         data("heading/holding", heading.target() != null);
         data("heading/deg", Math.toDegrees(follower.pose().heading()));
+        loopAfter();
+    }
+
+    @Override
+    public void stop() {
+        stopAfter();
     }
 }

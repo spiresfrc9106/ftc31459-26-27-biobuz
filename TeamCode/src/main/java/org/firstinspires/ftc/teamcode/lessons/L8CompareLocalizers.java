@@ -22,9 +22,31 @@ public class L8CompareLocalizers extends CorbelsTeleOp {
         shadow.add("encoders", new MecanumEncoderLocalizer(new HardwareWheelSource(hardware)));
     }
 
+    private LessonDriveTrain wheels;
+
     @Override
-    protected void drive() {
+    public void init() {
+        initBefore();
+        wheels = new LessonDriveTrain(hardware);
+        initAfter(wheels);
+    }
+
+    @Override
+    public void start() {
+        startBefore();
+        startAfter();
+    }
+
+    @Override
+    public void loop() {
+        loopBefore();
         Drive.holonomic(follower,
                 -gamepad1.left_stick_y, -gamepad1.left_stick_x, gamepad1.right_stick_x);
+        loopAfter();
+    }
+
+    @Override
+    public void stop() {
+        stopAfter();
     }
 }

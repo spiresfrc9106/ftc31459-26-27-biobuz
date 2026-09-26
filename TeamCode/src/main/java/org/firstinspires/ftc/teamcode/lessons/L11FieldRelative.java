@@ -12,11 +12,33 @@ import org.firstinspires.ftc.teamcode.base.Drive;
 @TeleOp(name = "L11 Field Relative", group = "Lessons")
 public class L11FieldRelative extends CorbelsTeleOp {
 
+    private LessonDriveTrain wheels;
+
     @Override
-    protected void drive() {
+    public void init() {
+        initBefore();
+        wheels = new LessonDriveTrain(hardware);
+        initAfter(wheels);
+    }
+
+    @Override
+    public void start() {
+        startBefore();
+        startAfter();
+    }
+
+    @Override
+    public void loop() {
+        loopBefore();
         Drive.fieldRelative(follower,
                 -gamepad1.left_stick_y,      // away from the driver
                 -gamepad1.left_stick_x,      // to the driver's left
                 gamepad1.right_stick_x);
+        loopAfter();
+    }
+
+    @Override
+    public void stop() {
+        stopAfter();
     }
 }

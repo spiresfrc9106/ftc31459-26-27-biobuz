@@ -34,8 +34,39 @@ public class L14DriveToPose extends CorbelsTeleOp {
         }));
     }
 
+    private LessonDriveTrain wheels;
+
     @Override
-    protected void drive() {
+    public void init() {
+        initBefore();
+        wheels = new LessonDriveTrain(hardware);
+        initAfter(wheels);
+    }
+
+    @Override
+    public void start() {
+        startBefore();
+        startAfter();
+    }
+
+    @Override
+    public void loop() {
+        loopBefore();
+        driveTheRobot();
+        loopAfter();
+    }
+
+    @Override
+    public void stop() {
+        stopAfter();
+    }
+
+    /**
+     * This lesson's own driving code. It lives in its own method because it
+     * returns early, and {@code loop()} must always reach {@code loopAfter()}:
+     * that is where the follower updates and the flight log is written.
+     */
+    private void driveTheRobot() {
         double forward = -gamepad1.left_stick_y;
         double left = -gamepad1.left_stick_x;
         double turn = gamepad1.right_stick_x;

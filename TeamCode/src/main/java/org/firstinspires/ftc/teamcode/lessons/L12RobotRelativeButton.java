@@ -12,8 +12,29 @@ import org.firstinspires.ftc.teamcode.base.Drive;
 @TeleOp(name = "L12 Robot Relative Button", group = "Lessons")
 public class L12RobotRelativeButton extends CorbelsTeleOp {
 
+    private LessonDriveTrain wheels;
+
     @Override
-    protected void drive() {
+    public void init() {
+        initBefore();
+        wheels = new LessonDriveTrain(hardware);
+        initAfter(wheels);
+    }
+
+    @Override
+    public void start() {
+        startBefore();
+        startAfter();
+    }
+
+    @Override
+    public void stop() {
+        stopAfter();
+    }
+
+    @Override
+    public void loop() {
+        loopBefore();
         double forward = -gamepad1.left_stick_y;
         double left = -gamepad1.left_stick_x;
         double turn = gamepad1.right_stick_x;
@@ -23,5 +44,6 @@ public class L12RobotRelativeButton extends CorbelsTeleOp {
             Drive.fieldRelative(follower, forward, left, turn);
         }
         data("drive/robotRelative", gamepad1.right_bumper);
+        loopAfter();
     }
 }
