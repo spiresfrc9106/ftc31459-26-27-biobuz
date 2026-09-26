@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
 import org.firstinspires.ftc.teamcode.base.Drive;
+import org.firstinspires.ftc.teamcode.base.Tracker;
 
 /**
  * L14: press Y and the robot drives itself to a pose and stays there.
@@ -74,12 +75,12 @@ public class L14DriveToPose extends CorbelsTeleOp {
 
         if (drivingItself) {
             if (!driverWantsControl) {
-                data("drive/mode", "AUTO");
+                Tracker.publish("drive/mode", "AUTO");
                 return;                       // leave the follower holding
             }
             drivingItself = false;            // the driver takes over
         }
-        data("drive/mode", "DRIVER");
+        Tracker.publish("drive/mode", "DRIVER");
         Drive.fieldRelative(follower, forward, left, turn);
     }
 }

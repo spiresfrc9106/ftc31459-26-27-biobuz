@@ -4,6 +4,7 @@ import com.pedropathing.ivy.commands.Commands;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
+import org.firstinspires.ftc.teamcode.base.Tracker;
 
 /**
  * L2: the sticks drive the wheels.
@@ -50,10 +51,10 @@ public class L2Sticks extends CorbelsTeleOp {
         double right = -gamepad1.right_stick_y;
         tank.sticks(left, right);
 
-        data("stick/leftY", left);
-        data("stick/leftX", gamepad1.left_stick_x);
-        data("stick/rightY", right);
-        data("stick/rightX", gamepad1.right_stick_x);
+        Tracker.publish("stick/leftY", left);
+        Tracker.publish("stick/leftX", gamepad1.left_stick_x);
+        Tracker.publish("stick/rightY", right);
+        Tracker.publish("stick/rightX", gamepad1.right_stick_x);
 
         loopAfter();
     }
@@ -67,6 +68,6 @@ public class L2Sticks extends CorbelsTeleOp {
     @Override
     protected void bindings() {
         buttons.whenPressed(() -> gamepad1.a,
-                Commands.instant(() -> data("driver pressed A", true)));
+                Commands.instant(() -> Tracker.publish("driver pressed A", true)));
     }
 }

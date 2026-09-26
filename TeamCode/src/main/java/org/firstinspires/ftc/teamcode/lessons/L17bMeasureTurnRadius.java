@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.base.Calibration;
 import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
+import org.firstinspires.ftc.teamcode.base.Tracker;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 /**
@@ -78,9 +79,9 @@ public class L17bMeasureTurnRadius extends CorbelsTeleOp {
         wheelInches = turnTicks / Constants.ticksPerInch;
 
         double measured = Calibration.turnRadiusInches(wheelInches, radians);
-        data("measure/radians", radians);
-        data("measure/wheel_inches", wheelInches);
-        data("measure/turnRadius_in", measured);
+        Tracker.publish("measure/radians", radians);
+        Tracker.publish("measure/wheel_inches", wheelInches);
+        Tracker.publish("measure/turnRadius_in", measured);
 
         telemetry.addData("Spin the robot", "%.2f of %.0f turns",
                 Math.abs(radians) / (2 * Math.PI), NEEDED_TURNS);

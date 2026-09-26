@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.base.CorbelsMecanum;
 import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
+import org.firstinspires.ftc.teamcode.base.Tracker;
 import org.firstinspires.ftc.teamcode.base.WheelVelocities;
 
 /**
@@ -105,13 +106,13 @@ public class VoltageResponse extends CorbelsTeleOp {
 
         drivetrain.setCommandedWheels(power, power, power, power);
 
-        data("volts", volts);
-        data("volts/call_us", callMicros);
-        data("drive/power", power);
-        data("drive/phase", phase);
-        data("drive/frequency_hz", finished ? 0 : FREQUENCIES[Math.min(phase, FREQUENCIES.length - 1)]);
-        data("drive/wheel_ips", wheels.frontLeftInchesPerSecond());
-        data("running", running && !finished);
+        Tracker.publish("volts", volts);
+        Tracker.publish("volts/call_us", callMicros);
+        Tracker.publish("drive/power", power);
+        Tracker.publish("drive/phase", phase);
+        Tracker.publish("drive/frequency_hz", finished ? 0 : FREQUENCIES[Math.min(phase, FREQUENCIES.length - 1)]);
+        Tracker.publish("drive/wheel_ips", wheels.frontLeftInchesPerSecond());
+        Tracker.publish("running", running && !finished);
 
         telemetry.addData("State", running ? (finished ? "DONE" : "phase " + phase) : "hold the right trigger");
         if (running && !finished) {

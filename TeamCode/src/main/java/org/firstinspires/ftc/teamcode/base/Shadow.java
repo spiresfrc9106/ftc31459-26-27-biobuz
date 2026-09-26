@@ -11,9 +11,9 @@ import java.util.List;
  * Runs extra localizers alongside the real one and logs what each of them
  * thinks. Nothing here steers the robot -- they only watch.
  *
- * <p>Each shadow sends {@code Localizer/<name>/x_in}, {@code /y_in} and
- * {@code /heading_deg} to Panels, so its numbers can be graphed next to the
- * follower's own pose while you drive.
+ * <p>Each shadow publishes {@code Localizer/<name>/x_in}, {@code /y_in} and
+ * {@code /heading_deg}, so its numbers can be graphed next to the follower's
+ * own pose while you drive.
  */
 public final class Shadow {
 
@@ -39,20 +39,14 @@ public final class Shadow {
         for (Entry e : entries) e.localizer.setPose(pose);
     }
 
-    /** Call once per loop: updates each shadow and logs its pose. */
-    /** Where a shadow's numbers go. */
-    public interface Recorder {
-        void record(String key, double value);
-    }
-
-    /** Call once per loop: updates each shadow and sends its pose to Panels. */
-    public void update(Recorder recorder) {
+    /** Call once per loop: updates each shadow and publishes its pose. */
+    public void update() {
         for (Entry e : entries) {
             e.localizer.update();
             Pose p = e.localizer.pose();
-            recorder.record("Localizer/" + e.name + "/x_in", p.x());
-            recorder.record("Localizer/" + e.name + "/y_in", p.y());
-            recorder.record("Localizer/" + e.name + "/heading_deg", Math.toDegrees(p.heading()));
+            Tracker.publish("Localizer/" + e.name + "/x_in", p.x());
+            Tracker.publish("Localizer/" + e.name + "/y_in", p.y());
+            Tracker.publish("Localizer/" + e.name + "/heading_deg", Math.toDegrees(p.heading()));
         }
     }
 

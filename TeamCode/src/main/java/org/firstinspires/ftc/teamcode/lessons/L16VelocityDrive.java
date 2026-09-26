@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
 import org.firstinspires.ftc.teamcode.base.Drive;
+import org.firstinspires.ftc.teamcode.base.Tracker;
 import org.firstinspires.ftc.teamcode.base.WheelTargets;
 import org.firstinspires.ftc.teamcode.base.WheelVelocities;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
@@ -101,14 +102,14 @@ public class L16VelocityDrive extends CorbelsTeleOp {
 
         String[] names = {"frontLeft", "frontRight", "backLeft", "backRight"};
         for (int i = 0; i < 4; i++) {
-            data("wheel/" + names[i] + "/target_ips", target[i]);
-            data("wheel/" + names[i] + "/actual_ips", actual[i]);
-            data("wheel/" + names[i] + "/error_ips", target[i] - actual[i]);
-            data("wheel/" + names[i] + "/power", power[i]);
+            Tracker.publish("wheel/" + names[i] + "/target_ips", target[i]);
+            Tracker.publish("wheel/" + names[i] + "/actual_ips", actual[i]);
+            Tracker.publish("wheel/" + names[i] + "/error_ips", target[i] - actual[i]);
+            Tracker.publish("wheel/" + names[i] + "/power", power[i]);
         }
-        data("command/forward_ips", forwardIps);
-        data("command/left_ips", leftIps);
-        data("command/turn_radps", turnRadps);
+        Tracker.publish("command/forward_ips", forwardIps);
+        Tracker.publish("command/left_ips", leftIps);
+        Tracker.publish("command/turn_radps", turnRadps);
 
         loopAfter();
     }

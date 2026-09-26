@@ -23,7 +23,7 @@ import java.util.Map;
 
 /**
  * Runs a real OpMode on a laptop: simulated drivetrain, fake motors and a
- * fake IMU. Panels telemetry is captured through the OpMode's data(...)
+ * fake IMU. Panels telemetry is captured through the OpMode's Tracker.publish(...)
  * values rather than read back from a file.
  */
 public final class OpModeHarness {

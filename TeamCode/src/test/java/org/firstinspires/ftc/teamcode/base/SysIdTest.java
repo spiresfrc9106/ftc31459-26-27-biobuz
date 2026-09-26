@@ -93,17 +93,16 @@ public class SysIdTest {
         h.init();
         h.start();
         h.loop();
-        VoltageResponse opMode = (VoltageResponse) h.opMode();
-        assertEquals(false, opMode.values().get("running"));
-        assertEquals(0.0, (Double) opMode.values().get("drive/power"), 1e-9);
+        assertEquals(false, Tracker.values().get("running"));
+        assertEquals(0.0, (Double) Tracker.values().get("drive/power"), 1e-9);
 
         h.gamepad1.right_trigger = 1.0f;
         h.loops(2, 5);
-        assertEquals(true, opMode.values().get("running"));
+        assertEquals(true, Tracker.values().get("running"));
         assertTrue("it times its own reads",
-                (Double) opMode.values().get("volts/call_us") >= 0);
+                (Double) Tracker.values().get("volts/call_us") >= 0);
         assertEquals("a nominal battery in tests", 12.0,
-                (Double) opMode.values().get("volts"), 1e-9);
+                (Double) Tracker.values().get("volts"), 1e-9);
     }
 
     @Test
@@ -118,20 +117,19 @@ public class SysIdTest {
         h.init();
         h.start();
         h.loop();
-        SysIdDrive opMode = (SysIdDrive) h.opMode();
-        assertEquals(false, opMode.values().get("sysid/running"));
+        assertEquals(false, Tracker.values().get("sysid/running"));
         assertEquals("nothing moves until asked", 0.0,
-                (Double) opMode.values().get("sysid/power"), 1e-9);
+                (Double) Tracker.values().get("sysid/power"), 1e-9);
 
         h.gamepad1.right_trigger = 1.0f;
         h.loops(3, 10);
-        assertEquals(true, opMode.values().get("sysid/running"));
-        assertTrue("and then it ramps", (Double) opMode.values().get("sysid/volts_commanded") > 0);
+        assertEquals(true, Tracker.values().get("sysid/running"));
+        assertTrue("and then it ramps", (Double) Tracker.values().get("sysid/volts_commanded") > 0);
 
         h.gamepad1.right_trigger = 0f;
         h.loop();
-        assertEquals(false, opMode.values().get("sysid/running"));
-        assertEquals(0.0, (Double) opMode.values().get("sysid/power"), 1e-9);
+        assertEquals(false, Tracker.values().get("sysid/running"));
+        assertEquals(0.0, (Double) Tracker.values().get("sysid/power"), 1e-9);
     }
 
     @Test
@@ -144,12 +142,11 @@ public class SysIdTest {
         h.loop();
         h.gamepad1.right_trigger = 1.0f;
         h.loop();
-        SysIdDrive opMode = (SysIdDrive) h.opMode();
-        assertEquals(4.0 / 12.0, (Double) opMode.values().get("sysid/power"), 1e-6);
+        assertEquals(4.0 / 12.0, (Double) Tracker.values().get("sysid/power"), 1e-6);
 
         h.batteryVolts = 10.0;
         h.loop();
         assertEquals("same volts asked for, more power needed",
-                4.0 / 10.0, (Double) opMode.values().get("sysid/power"), 1e-6);
+                4.0 / 10.0, (Double) Tracker.values().get("sysid/power"), 1e-6);
     }
 }

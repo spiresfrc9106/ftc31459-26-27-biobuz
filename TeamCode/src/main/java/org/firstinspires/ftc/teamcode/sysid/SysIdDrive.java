@@ -114,11 +114,11 @@ public class SysIdDrive extends CorbelsTeleOp {
             }
         }
 
-        data("sysid/running", running);
-        data("sysid/test", selected.toString());
-        data("sysid/volts_commanded", volts);
-        data("sysid/power", power);
-        data("sysid/battery_volts", battery);
+        Tracker.publish("sysid/running", running);
+        Tracker.publish("sysid/test", selected.toString());
+        Tracker.publish("sysid/volts_commanded", volts);
+        Tracker.publish("sysid/power", power);
+        Tracker.publish("sysid/battery_volts", battery);
 
         telemetry.addData("Test", "%s   %s", selected, running ? "RUNNING" : "ready");
         telemetry.addLine("D-pad picks the test. Hold the right trigger to run it.");

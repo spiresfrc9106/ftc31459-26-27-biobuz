@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.lessons;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
+import org.firstinspires.ftc.teamcode.base.Tracker;
 
 /**
  * L4: arcade drive. One stick drives, the other turns. Still no strafing.
@@ -43,8 +44,8 @@ public class L4Arcade extends CorbelsTeleOp {
         double turn = -gamepad1.right_stick_x;
         arcade.sticks(forward, turn);
 
-        data("command/forward", forward);
-        data("command/turn_ccw", turn);
+        Tracker.publish("command/forward", forward);
+        Tracker.publish("command/turn_ccw", turn);
 
         loopAfter();
     }

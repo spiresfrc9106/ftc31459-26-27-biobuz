@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
 import org.firstinspires.ftc.teamcode.base.Drive;
 import org.firstinspires.ftc.teamcode.base.HeadingHold;
+import org.firstinspires.ftc.teamcode.base.Tracker;
 import org.firstinspires.ftc.teamcode.base.odometry.HardwareWheelSource;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
@@ -100,8 +101,8 @@ public class L15Combined extends CorbelsTeleOp {
 
         if (drivingItself) {
             if (!driverWantsControl) {
-                data("drive/mode", "AUTO");
-                data("drive/target_deg", Math.toDegrees(TARGET_POSE.heading()));
+                Tracker.publish("drive/mode", "AUTO");
+                Tracker.publish("drive/target_deg", Math.toDegrees(TARGET_POSE.heading()));
                 return;
             }
             drivingItself = false;      // a stick moved: the driver has it back
@@ -110,14 +111,14 @@ public class L15Combined extends CorbelsTeleOp {
 
         double turn = heading.turn(follower, stick);
         Double held = heading.target();
-        data("drive/aiming", held != null);
-        if (held != null) data("drive/target_deg", Math.toDegrees(held));
+        Tracker.publish("drive/aiming", held != null);
+        if (held != null) Tracker.publish("drive/target_deg", Math.toDegrees(held));
 
         if (gamepad1.right_bumper) {
-            data("drive/mode", "ROBOT");
+            Tracker.publish("drive/mode", "ROBOT");
             Drive.holonomic(follower, forward, left, turn);
         } else {
-            data("drive/mode", "FIELD");
+            Tracker.publish("drive/mode", "FIELD");
             Drive.fieldRelative(follower, forward, left, turn);
         }
     }

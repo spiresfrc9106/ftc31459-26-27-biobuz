@@ -12,6 +12,7 @@ import com.pedropathing.math.Pose;
 
 
 import org.firstinspires.ftc.teamcode.base.OpModeHarness;
+import org.firstinspires.ftc.teamcode.base.Tracker;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 import org.junit.After;
 import org.junit.Test;
@@ -57,7 +58,7 @@ public class LessonsTest {
         h.loop();
         h.stop();
 
-        Map<String, Object> values = ((L2Sticks) h.opMode()).values();
+        Map<String, Object> values = Tracker.values();
         assertEquals("forward is positive after negating the stick",
                 1.0, number(values, "stick/leftY"), EPS);
         assertEquals(0.5, number(values, "stick/rightX"), EPS);
@@ -112,7 +113,7 @@ public class LessonsTest {
                 0.0, h.motors.get(Constants.frontLeftName).power, EPS);
         assertEquals(0.0, h.motors.get(Constants.frontRightName).power, EPS);
         assertNotEquals("the raw stick was not 0 though", 0.0,
-                number(((L3SmoothSticks) h.opMode()).values(), "stick/left_raw"), EPS);
+                number(Tracker.values(), "stick/left_raw"), EPS);
 
         h.gamepad1.left_stick_y = -0.5f;      // half forward
         h.gamepad1.right_stick_y = 0.5f;      // half back
@@ -231,7 +232,7 @@ public class LessonsTest {
         h.loop();
         h.stop();
 
-        Map<String, Object> values = ((L8CompareLocalizers) h.opMode()).values();
+        Map<String, Object> values = Tracker.values();
         assertTrue("the shadow localizer is logged: " + values.keySet(),
                 values.containsKey("Localizer/encoders/x_in"));
         assertEquals("the shadow must not steer the robot", 0.0, h.forward(), EPS);
@@ -394,7 +395,7 @@ public class LessonsTest {
         h.stop();
 
         assertTrue("the shadow localizer is still running",
-                ((L15Combined) h.opMode()).values().containsKey("Localizer/encoders/x_in"));
+                Tracker.values().containsKey("Localizer/encoders/x_in"));
     }
 
     @Test
@@ -411,9 +412,8 @@ public class LessonsTest {
         h.gamepad1.left_stick_y = -1.0f;             // still translating
         h.loop();
 
-        L15Combined opMode = (L15Combined) h.opMode();
-        assertEquals("aiming", true, opMode.values().get("drive/aiming"));
-        assertEquals("at 45 degrees", 45.0, (Double) opMode.values().get("drive/target_deg"), 1e-6);
+        assertEquals("aiming", true, Tracker.values().get("drive/aiming"));
+        assertEquals("at 45 degrees", 45.0, (Double) Tracker.values().get("drive/target_deg"), 1e-6);
         assertTrue("turning toward it", h.turn() > 0);
         assertTrue("and still driving", Math.abs(h.forward()) + Math.abs(h.strafe()) > 0);
     }
@@ -433,7 +433,7 @@ public class LessonsTest {
 
         assertEquals("the stick wins", 0.8, h.turn(), 1e-3);
         assertEquals("not aiming any more", false,
-                ((L15Combined) h.opMode()).values().get("drive/aiming"));
+                Tracker.values().get("drive/aiming"));
     }
 
     @Test
@@ -449,15 +449,15 @@ public class LessonsTest {
         h.gamepad1.y = false;
         h.loop();
         assertEquals(Follower.Mode.HOLD, follower.mode());
-        assertEquals("AUTO", ((L15Combined) h.opMode()).values().get("drive/mode"));
+        assertEquals("AUTO", Tracker.values().get("drive/mode"));
         // Pedro normalises headings to [0, 360), so -45 comes back as 315.
         assertEquals("the pose it was told to go to", 315.0,
-                (Double) ((L15Combined) h.opMode()).values().get("drive/target_deg"), 1e-6);
+                (Double) Tracker.values().get("drive/target_deg"), 1e-6);
 
         h.gamepad1.left_stick_y = -1.0f;
         h.loop();
         assertEquals("a stick takes it back", "FIELD",
-                ((L15Combined) h.opMode()).values().get("drive/mode"));
+                Tracker.values().get("drive/mode"));
     }
 
     @Test
@@ -468,18 +468,17 @@ public class LessonsTest {
 
         h.gamepad1.left_stick_y = -1.0f;            // full forward
         h.loop();
-        L16VelocityDrive opMode = (L16VelocityDrive) h.opMode();
 
         assertEquals("full stick asks for a speed, in inches per second",
-                40.0, (Double) opMode.values().get("command/forward_ips"), 1e-6);
+                40.0, (Double) Tracker.values().get("command/forward_ips"), 1e-6);
         assertEquals("and every wheel must travel at it",
-                40.0, (Double) opMode.values().get("wheel/frontLeft/target_ips"), 1e-6);
+                40.0, (Double) Tracker.values().get("wheel/frontLeft/target_ips"), 1e-6);
         assertEquals("the wheels are not moving yet, so the error is the whole target",
-                40.0, (Double) opMode.values().get("wheel/frontLeft/error_ips"), 1e-6);
+                40.0, (Double) Tracker.values().get("wheel/frontLeft/error_ips"), 1e-6);
 
         // the measured feedforward for 40 in/s, plus the feedback on a 40 in/s error
         assertEquals(Constants.powerPerInchPerSecond * 40 + 0.008 * 40,
-                (Double) opMode.values().get("wheel/frontLeft/power"), 1e-6);
+                (Double) Tracker.values().get("wheel/frontLeft/power"), 1e-6);
     }
 
     @Test
@@ -493,15 +492,14 @@ public class LessonsTest {
 
         h.gamepad1.left_stick_y = -1.0f;
         h.loop();
-        L16VelocityDrive opMode = (L16VelocityDrive) h.opMode();
 
         assertEquals("measured speed matches the command", 40.0,
-                (Double) opMode.values().get("wheel/frontLeft/actual_ips"), 1e-6);
+                (Double) Tracker.values().get("wheel/frontLeft/actual_ips"), 1e-6);
         assertEquals("so no correction is needed", 0.0,
-                (Double) opMode.values().get("wheel/frontLeft/error_ips"), 1e-6);
+                (Double) Tracker.values().get("wheel/frontLeft/error_ips"), 1e-6);
         assertEquals("and the power is the feedforward alone",
                 Constants.powerPerInchPerSecond * 40,
-                (Double) opMode.values().get("wheel/frontLeft/power"), 1e-6);
+                (Double) Tracker.values().get("wheel/frontLeft/power"), 1e-6);
     }
 
     @Test
@@ -511,10 +509,9 @@ public class LessonsTest {
         h.start();
         h.gamepad1.right_stick_x = -1.0f;           // full counter-clockwise
         h.loop();
-        L16VelocityDrive opMode = (L16VelocityDrive) h.opMode();
 
-        double left = (Double) opMode.values().get("wheel/frontLeft/target_ips");
-        double right = (Double) opMode.values().get("wheel/frontRight/target_ips");
+        double left = (Double) Tracker.values().get("wheel/frontLeft/target_ips");
+        double right = (Double) Tracker.values().get("wheel/frontRight/target_ips");
         assertEquals("opposite", -left, right, 1e-6);
         assertTrue("turning counter-clockwise drives the left side backwards", left < 0);
     }

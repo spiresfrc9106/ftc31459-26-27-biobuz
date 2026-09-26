@@ -9,6 +9,7 @@ import com.pedropathing.follower.Follower;
 
 
 import java.util.ArrayDeque;
+import org.firstinspires.ftc.teamcode.base.Tracker;
 
 /**
  * Shared Panels logging for the Corbels OpModes.
@@ -33,7 +34,7 @@ import java.util.ArrayDeque;
  * <p><b>Panels only.</b> Everything here goes to Panels and nowhere else.
  * ({@code TelemetryManager.update(telemetry)} would copy every Panels line to
  * the Driver Station, which crowds its screen.) The Driver Station belongs to
- * {@code Tracker.printToDs}, which also owns the loop count and the loop
+ * {@link Tracker#printToDs}, which also owns the loop count and the loop
  * timing.
  *
  * <p><b>Field view.</b> Draws on the Panels Field panel, in this order:

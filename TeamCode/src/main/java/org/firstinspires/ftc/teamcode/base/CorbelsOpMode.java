@@ -65,28 +65,6 @@ public abstract class CorbelsOpMode extends OpMode {
 
     // ------------------------------------------------------------ logging
 
-    /** Being replaced by {@link Tracker#publish}, which every class can reach. */
-    protected void data(String key, double value) {
-        Tracker.publish(key, value);
-    }
-
-    protected void data(String key, boolean value) {
-        Tracker.publish(key, value);
-    }
-
-    protected void data(String key, String value) {
-        Tracker.publish(key, value);
-    }
-
-    protected void data(String key, Pose pose) {
-        Tracker.publish(key, pose);
-    }
-
-    /** Being replaced by {@link Tracker#values}. */
-    public java.util.Map<String, Object> values() {
-        return Tracker.values();
-    }
-
     protected static String describe(Pose p) {
         return String.format("x %.1f  y %.1f  h %.0f deg", p.x(), p.y(), Math.toDegrees(p.heading()));
     }
@@ -158,7 +136,7 @@ public abstract class CorbelsOpMode extends OpMode {
     protected final void loopAfter() {
         follower.update();
         Scheduler.execute();
-        shadow.update(this::data);
+        shadow.update();
         afterLoop();
         // Counts the loop, records Pedro, closes the file's record for this loop,
         // then flushes Panels and the Driver Station.
