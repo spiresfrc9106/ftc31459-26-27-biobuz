@@ -139,13 +139,27 @@ public class LessonsTest {
         OpModeHarness h = new OpModeHarness(new L4Arcade());
         h.init();
         h.start();
-        h.gamepad1.left_stick_y = -0.8f;
-        h.gamepad1.right_stick_x = 0.3f;
+
+        h.gamepad1.left_stick_y = -0.5f;      // half forward
+        h.gamepad1.right_stick_x = 0.25f;     // and a quarter turn to the right
         h.loop();
-        assertEquals(0.8, h.forward(), EPS);
-        assertEquals(0.3, h.turn(), EPS);
-        assertEquals("arcade at this stage still cannot strafe", 0.0, h.strafe(), EPS);
+        assertEquals("turning right speeds the left wheels up",
+                0.75, h.motors.get(Constants.frontLeftName).power, EPS);
+        assertEquals("and slows the right wheels down",
+                0.25, h.motors.get(Constants.frontRightName).power, EPS);
+        assertEquals("both wheels on a side do the same thing",
+                0.75, h.motors.get(Constants.backLeftName).power, EPS);
+        assertEquals(0.25, h.motors.get(Constants.backRightName).power, EPS);
+
+        h.gamepad1.left_stick_y = -1.0f;      // full forward
+        h.gamepad1.right_stick_x = -1.0f;     // and a full turn to the left
+        h.loop();
+        assertEquals("asking for more than a motor can give scales both sides down together",
+                0.0, h.motors.get(Constants.frontLeftName).power, EPS);
+        assertEquals(1.0, h.motors.get(Constants.frontRightName).power, EPS);
+
         h.stop();
+        assertEquals(0.0, h.motors.get(Constants.frontRightName).power, EPS);
     }
 
     // -------------------------------------------------------------- L5
@@ -155,11 +169,34 @@ public class LessonsTest {
         OpModeHarness h = new OpModeHarness(new L5Holonomic());
         h.init();
         h.start();
+
+        h.gamepad1.left_stick_y = -1.0f;      // stick pushed away from the driver
+        h.loop();
+        assertEquals("driving forward turns every wheel the same way",
+                1.0, h.motors.get(Constants.frontLeftName).power, EPS);
+        assertEquals(1.0, h.motors.get(Constants.frontRightName).power, EPS);
+        assertEquals(1.0, h.motors.get(Constants.backLeftName).power, EPS);
+        assertEquals(1.0, h.motors.get(Constants.backRightName).power, EPS);
+
+        h.gamepad1.left_stick_y = 0.0f;
         h.gamepad1.left_stick_x = -1.0f;      // stick pushed left
         h.loop();
-        assertEquals("now it strafes", 1.0, h.strafe(), EPS);
-        assertEquals(0.0, h.forward(), EPS);
+        assertEquals("sliding left runs one diagonal back and the other forward",
+                -1.0, h.motors.get(Constants.frontLeftName).power, EPS);
+        assertEquals(1.0, h.motors.get(Constants.frontRightName).power, EPS);
+        assertEquals(1.0, h.motors.get(Constants.backLeftName).power, EPS);
+        assertEquals(-1.0, h.motors.get(Constants.backRightName).power, EPS);
+
+        h.gamepad1.left_stick_x = 0.0f;
+        h.gamepad1.right_stick_x = 0.5f;      // turn right, on the spot
+        h.loop();
+        assertEquals("turning right runs the left side forward",
+                0.5, h.motors.get(Constants.frontLeftName).power, EPS);
+        assertEquals("and the right side back",
+                -0.5, h.motors.get(Constants.frontRightName).power, EPS);
+
         h.stop();
+        assertEquals(0.0, h.motors.get(Constants.frontLeftName).power, EPS);
     }
 
     // -------------------------------------------------------------- L8
