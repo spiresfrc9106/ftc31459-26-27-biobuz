@@ -35,7 +35,7 @@ public class SharedLifecycleTest {
         @Override public void loop() {
             loopBefore();
             calls.add("drive");
-            data("teleop/loops", loops());
+            data("teleop/loops", Tracker.loopCount());
             loopAfter();
         }
     }
@@ -77,8 +77,9 @@ public class SharedLifecycleTest {
 
         h.loop();
         assertTrue(opMode.calls.contains("drive"));
-        assertEquals(1, opMode.loops());
-        assertEquals(1.0, (Double) opMode.values().get("teleop/loops"), 1e-9);
+        assertEquals("one loop finished", 1, Tracker.loopCount());
+        assertEquals("and none had finished while its body ran",
+                0.0, (Double) opMode.values().get("teleop/loops"), 1e-9);
 
         h.stop();
         assertEquals("stopped", 0.0, h.forward(), 1e-9);
@@ -100,7 +101,7 @@ public class SharedLifecycleTest {
 
         h.loop();
         assertTrue("the scheduler ran the routine", opMode.ran);
-        assertEquals(1, opMode.loops());
+        assertEquals(1, Tracker.loopCount());
 
         h.stop();
         assertEquals(0.0, h.forward(), 1e-9);

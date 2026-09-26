@@ -53,12 +53,11 @@ public class FlightLogTest {
 
         h.start();
         assertEquals("and still just the one", 1, h.logs().length);
-        SampleTeleOp opMode = (SampleTeleOp) h.opMode();
-        assertTrue(opMode.flight.status(), opMode.flight.isRecording());
+        assertTrue(Tracker.flightlog.status(), Tracker.flightlog.isRecording());
 
         h.loops(5, 0);
         h.stop();
-        assertFalse("closed when the OpMode ends", opMode.flight.isRecording());
+        assertFalse("closed when the OpMode ends", Tracker.flightlog.isRecording());
         assertTrue("and has something in it", h.logs()[0].length() > 0);
     }
 
@@ -70,7 +69,7 @@ public class FlightLogTest {
         h.loops(3, 0);
         h.stop();
         assertEquals(1, h.logs().length);
-        assertFalse(((SampleAuto) h.opMode()).flight.isRecording());
+        assertFalse(Tracker.flightlog.isRecording());
     }
 
     @Test

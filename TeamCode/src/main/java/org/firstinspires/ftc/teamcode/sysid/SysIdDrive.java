@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.base.CorbelsMecanum;
 import org.firstinspires.ftc.teamcode.base.CorbelsTeleOp;
 import org.firstinspires.ftc.teamcode.base.SysIdRecorder;
+import org.firstinspires.ftc.teamcode.base.Tracker;
 import org.firstinspires.ftc.teamcode.base.WheelVelocities;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
@@ -61,7 +62,7 @@ public class SysIdDrive extends CorbelsTeleOp {
     @Override
     public void start() {
         startBefore();
-        recorder = new SysIdRecorder(flight, "drive");
+        recorder = new SysIdRecorder(Tracker.flightlog, "drive");
         wheels = new WheelVelocities(hardware);
         startTicks = ticks();
         startAfter();
