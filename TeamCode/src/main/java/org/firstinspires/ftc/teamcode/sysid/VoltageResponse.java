@@ -55,6 +55,7 @@ public class VoltageResponse extends CorbelsTeleOp {
     /** How hard the square wave drives. Enough to move the rail, not the robot. */
     static final double AMPLITUDE = 0.4;
 
+    private CorbelsMecanum drivetrain;
     private WheelVelocities wheels;
     private boolean running;
     private long startNs;
@@ -75,7 +76,7 @@ public class VoltageResponse extends CorbelsTeleOp {
 
     @Override
     public void stop() {
-        drivetrain.releaseWheels();
+        drivetrain.releaseCommandedWheels();
         stopAfter();
     }
 
@@ -102,7 +103,7 @@ public class VoltageResponse extends CorbelsTeleOp {
         double volts = hardware.batteryVolts();
         double callMicros = (System.nanoTime() - before) / 1000.0;
 
-        drivetrain.driveWheels(power, power, power, power);
+        drivetrain.setCommandedWheels(power, power, power, power);
 
         data("volts", volts);
         data("volts/call_us", callMicros);
@@ -145,6 +146,6 @@ public class VoltageResponse extends CorbelsTeleOp {
 
     @Override
     protected void afterLoop() {
-        if (!running) drivetrain.driveWheels(0, 0, 0, 0);
+        if (!running) drivetrain.setCommandedWheels(0, 0, 0, 0);
     }
 }

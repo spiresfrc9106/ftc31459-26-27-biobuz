@@ -42,6 +42,7 @@ public class SysIdDrive extends CorbelsTeleOp {
 
     private static final String[] MOTOR_NAMES = {"frontLeft", "frontRight", "backLeft", "backRight"};
 
+    private CorbelsMecanum drivetrain;
     private SysIdRecorder recorder;
     private WheelVelocities wheels;
 
@@ -68,7 +69,7 @@ public class SysIdDrive extends CorbelsTeleOp {
 
     @Override
     public void stop() {
-        drivetrain.releaseWheels();
+        drivetrain.releaseCommandedWheels();
         stopAfter();
     }
 
@@ -100,7 +101,7 @@ public class SysIdDrive extends CorbelsTeleOp {
 
         double battery = hardware.batteryVolts();
         double power = battery > 1 ? clamp(volts / battery) : 0;
-        drivetrain.driveWheels(power, power, power, power);
+        drivetrain.setCommandedWheels(power, power, power, power);
 
         if (running) {
             recorder.state(selected);
@@ -155,6 +156,6 @@ public class SysIdDrive extends CorbelsTeleOp {
 
     @Override
     protected void afterLoop() {
-        if (!running) drivetrain.driveWheels(0, 0, 0, 0);
+        if (!running) drivetrain.setCommandedWheels(0, 0, 0, 0);
     }
 }

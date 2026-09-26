@@ -21,16 +21,23 @@ public class FlightLogTest {
 
     /** A lesson that logs one of everything. */
     public static class SampleTeleOp extends CorbelsTeleOp {
+        @Override public void init() { initBefore(); initAfter(); }
+
         @Override
-        protected void drive() {
+        public void loop() {
+            loopBefore();
             data("number", 1.5);
             data("flag", true);
             data("text", "hello");
             data("Robot/Pose", POSES.of(24, 48, 90));
+            loopAfter();
         }
     }
 
     public static class SampleAuto extends CorbelsAuto {
+        @Override public void init() { initBefore(); initAfter(); }
+        @Override public void loop() { loopBefore(); loopAfter(); }
+
         @Override protected Pose startPose() { return POSES.of(12, 12, 0); }
         @Override protected com.pedropathing.ivy.Command routine() {
             return com.pedropathing.ivy.commands.Commands.instant(() -> { });
@@ -102,7 +109,8 @@ public class FlightLogTest {
     /** Logs during init, when Panels does not exist yet. */
     public static class InitLogging extends CorbelsTeleOp {
         @Override protected void onInit() { data("setup/value", 7.5); }
-        @Override protected void drive() { }
+        @Override public void init() { initBefore(); initAfter(); }
+        @Override public void loop() { loopBefore(); loopAfter(); }
     }
 
     @Test

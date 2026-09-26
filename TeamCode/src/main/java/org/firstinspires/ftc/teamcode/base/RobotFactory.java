@@ -17,10 +17,7 @@ import java.util.function.Function;
  */
 public final class RobotFactory {
 
-    /** Builds the follower. Tests swap in a simulated drivetrain. */
-    /** The drivetrain the follower drives, and that a lesson can command directly. */
-    public static Function<RobotHardware, CorbelsMecanum> drivetrain = CorbelsMecanum::new;
-
+    /** Builds the follower over the drivetrain given. Tests swap in a simulated one. */
     public static BiFunction<HardwareMap, Drivetrain, Follower> follower = Constants::create;
 
     /**

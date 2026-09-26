@@ -22,10 +22,9 @@ import java.util.Map;
  * not: find the hardware, make the follower, run the scheduler, keep Panels and
  * the Driver Station fed.
  *
- * <p>Teleops and autos differ in four places, and those are the hooks below:
- * {@link #onInit}, {@link #onStart}, {@link #onLoop} and {@link #afterLoop}.
- * {@link CorbelsTeleOp} and {@link CorbelsAuto} fill them in; a lesson extends
- * one of those, not this.
+ * <p>Teleops and autos differ in three places, and those are the hooks below:
+ * {@link #onInit}, {@link #onStart} and {@link #afterLoop}. {@link CorbelsTeleOp}
+ * and {@link CorbelsAuto} fill them in; a lesson extends one of those, not this.
  *
  * <p>Every run also writes a WPILOG file, openable in AdvantageScope
  * afterwards: everything sent to {@link #data}, the robot's pose and path from
@@ -40,6 +39,11 @@ import java.util.Map;
  * {@link #startAfter}, {@link #loopBefore} and {@link #loopAfter}, and
  * {@link #stopAfter}. The hooks are final; what goes between them is the
  * lesson's.
+ *
+ * <p>{@code init} and {@code loop} are not written here, so the compiler asks
+ * every lesson for them, which is what the SDK does too. {@code start} and
+ * {@code stop} have the obvious bodies below, and a lesson with nothing of its
+ * own to do there may leave them alone.
  */
 public abstract class CorbelsOpMode extends OpMode {
 
@@ -48,11 +52,6 @@ public abstract class CorbelsOpMode extends OpMode {
 
     protected Follower follower;
 
-    /**
-     * The drivetrain, for a lesson that drives the wheels itself. The follower
-     * drives it every update; see {@link CorbelsMecanum#driveWheels}.
-     */
-    protected CorbelsMecanum drivetrain;
     protected PanelsLogger log;
 
     /**
@@ -79,10 +78,6 @@ public abstract class CorbelsOpMode extends OpMode {
 
     /** Once, when the OpMode starts, before {@link #shadows()}. */
     protected void onStart() {
-    }
-
-    /** Every loop, before the follower updates. */
-    protected void onLoop() {
     }
 
     /** Every loop, after the scheduler and the shadow localizers. */
@@ -143,13 +138,6 @@ public abstract class CorbelsOpMode extends OpMode {
 
     // ------------------------------------------------------------ lifecycle
 
-    @Override
-    public void init() {
-        initBefore();
-        drivetrain = RobotFactory.drivetrain.apply(hardware);
-        initAfter(drivetrain);
-    }
-
     /** The hardware and the flight log. The first thing a lesson's init() calls. */
     protected final void initBefore() {
         // Every device, looked up once, before the match starts. A name that
@@ -202,13 +190,6 @@ public abstract class CorbelsOpMode extends OpMode {
     protected final void startAfter() {
         shadows();
         shadow.setPose(follower.pose());
-    }
-
-    @Override
-    public void loop() {
-        loopBefore();
-        onLoop();
-        loopAfter();
     }
 
     /**
